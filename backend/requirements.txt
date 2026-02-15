@@ -1,0 +1,19 @@
+fastapi
+uvicorn[standard]
+pydantic
+pydantic-settings
+
+# Load .env files
+python-dotenv
+
+# Optional: enable real Gemini calls
+google-genai
+
+# Dev/test
+pytest
+
+# Required by starlette/fastapi TestClient
+httpx
+
+# Required for UploadFile/form-data parsing
+python-multipart

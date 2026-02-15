@@ -1,0 +1,11 @@
+"""
+Test Suite for the Application.
+
+Contains:
+- Unit tests for domain logic
+- Integration tests for API endpoints
+- Infrastructure tests (LLM, storage, etc.)
+- End-to-end workflow tests
+
+Tests should mirror the application structure.
+"""

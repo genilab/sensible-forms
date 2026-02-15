@@ -1,0 +1,1 @@
+"""Analysis Assistant domain."""
