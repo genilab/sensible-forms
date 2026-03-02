@@ -19,6 +19,7 @@ from app.domains.question_generation.schemas import (
 from app.domains.question_generation.graph import build_graph
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.memory.checkpointers import get_checkpointer
+from app.middleware.guardrails import get_pii_input_redactor
 from uuid import uuid4
 
 
@@ -28,6 +29,7 @@ class QuestionGenerationService:
 
     def generate(self, request: QuestionRequest) -> QuestionResponse:
         topic = (request.topic or "").strip()
+        topic = get_pii_input_redactor().redact_text(topic)
         session_id = request.session_id or uuid4()
         thread_id = f"question_generation:{session_id}"
 

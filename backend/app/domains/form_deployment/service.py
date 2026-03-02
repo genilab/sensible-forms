@@ -23,6 +23,7 @@ from app.domains.form_deployment.graph import build_graph
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.memory.checkpointers import get_checkpointer
 from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
+from app.middleware.guardrails import get_pii_input_redactor
 from uuid import uuid4
 
 
@@ -40,6 +41,20 @@ class FormDeploymentService:
                 session_id=session_id,
             )
 
+        redactor = get_pii_input_redactor()
+        msg = redactor.redact_text(msg)
+
+        last_deploy_filename = (
+            redactor.redact_text(request.last_deploy_filename)
+            if request.last_deploy_filename
+            else None
+        )
+        last_deploy_feedback = (
+            redactor.redact_text(request.last_deploy_feedback)
+            if request.last_deploy_feedback
+            else None
+        )
+
         session_id = request.session_id or uuid4()
         thread_id = f"form_deployment:{session_id}"
 
@@ -47,9 +62,9 @@ class FormDeploymentService:
             result = self._graph.invoke(
                 {
                     "message": msg,
-                    "last_deploy_filename": request.last_deploy_filename,
+                    "last_deploy_filename": last_deploy_filename,
                     "last_deploy_status": request.last_deploy_status,
-                    "last_deploy_feedback": request.last_deploy_feedback,
+                    "last_deploy_feedback": last_deploy_feedback,
                     "messages": [],
                 },
                 config={"configurable": {"thread_id": thread_id}},

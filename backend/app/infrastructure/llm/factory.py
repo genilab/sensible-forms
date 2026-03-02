@@ -16,6 +16,7 @@ import logging
 from app.infrastructure.config.settings import settings
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.llm.mock import MockLLMClient
+from app.infrastructure.llm.pii_guardrails import PiiRedactingLLMClient
 
 
 logger = logging.getLogger(__name__)
@@ -27,7 +28,7 @@ def get_llm_client() -> LLMClient:
 
     if provider in {"mock", "fake"}:
         logger.info("Using MockLLMClient (LLM_PROVIDER=%s)", provider)
-        return MockLLMClient()
+        return PiiRedactingLLMClient(MockLLMClient())
 
     openai_key_present = bool(settings.OPENAI_API_KEY)
     gemini_key_present = bool(settings.GEMINI_API_KEY)
@@ -47,7 +48,7 @@ def get_llm_client() -> LLMClient:
             from app.infrastructure.llm.openai_compat import OpenAICompatibleClient
 
             logger.info("Using OpenAICompatibleClient (model=%s)", settings.OPENAI_MODEL)
-            return OpenAICompatibleClient()
+            return PiiRedactingLLMClient(OpenAICompatibleClient())
         except Exception as e:
             if provider == "auto":
                 logger.warning("OpenAI client init failed: %s", e)
@@ -58,12 +59,12 @@ def get_llm_client() -> LLMClient:
                         from app.infrastructure.llm.gemini import GeminiClient
 
                         logger.info("Falling back to GeminiClient (model=%s)", settings.DEFAULT_MODEL)
-                        return GeminiClient()
+                        return PiiRedactingLLMClient(GeminiClient())
                     except Exception as gemini_error:
                         logger.warning("Gemini init also failed: %s", gemini_error)
 
                 logger.warning("Falling back to MockLLMClient (no usable LLM provider)")
-                return MockLLMClient()
+                return PiiRedactingLLMClient(MockLLMClient())
             raise
 
     if use_gemini:
@@ -74,12 +75,12 @@ def get_llm_client() -> LLMClient:
             from app.infrastructure.llm.gemini import GeminiClient
 
             logger.info("Using GeminiClient (model=%s)", settings.DEFAULT_MODEL)
-            return GeminiClient()
+            return PiiRedactingLLMClient(GeminiClient())
         except Exception as e:
             if provider == "auto":
                 # Keep example runnable even if the Gemini SDK isn't installed or init fails.
                 logger.warning("Falling back to MockLLMClient (Gemini init failed): %s", e)
-                return MockLLMClient()
+                return PiiRedactingLLMClient(MockLLMClient())
             raise
 
     if provider not in {
@@ -101,4 +102,4 @@ def get_llm_client() -> LLMClient:
         )
 
     logger.info("Using MockLLMClient (no OPENAI_API_KEY or GEMINI_API_KEY found)")
-    return MockLLMClient()
+    return PiiRedactingLLMClient(MockLLMClient())
