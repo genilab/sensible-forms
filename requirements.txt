@@ -6,6 +6,13 @@ pydantic-settings
 # Load .env files
 python-dotenv
 
+# LangChain (LLM orchestration)
+langchain
+langchain-core
+langgraph
+langchain-openai
+langchain-google-genai
+
 # Optional: enable real Gemini calls
 google-genai
 
