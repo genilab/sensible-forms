@@ -13,8 +13,10 @@
 import { useMemo, useState } from "react";
 
 import { sendDeploymentMessage, deploySurveyCsv } from "../services/formDeploymentService.js";
+import { getOrCreateSessionId } from "../services/session.js";
 
 export default function FormDeployment() {
+	const sessionId = useMemo(() => getOrCreateSessionId("form_deployment_session_id"), []);
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
@@ -45,7 +47,7 @@ export default function FormDeployment() {
 
 		setIsSending(true);
 		try {
-			const res = await sendDeploymentMessage(message, {
+			const res = await sendDeploymentMessage(message, sessionId, {
 				last_deploy_filename: lastDeployFilename,
 				last_deploy_status: lastDeployStatus,
 				last_deploy_feedback: lastDeployFeedback

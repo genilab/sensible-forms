@@ -18,6 +18,7 @@ from __future__ import annotations
 from typing import Optional
 
 from app.domains.form_deployment.prompts import SYSTEM_PROMPT
+from app.core.constants import LLM_TEMPERATURE_LOW
 from app.infrastructure.llm.client import LLMClient
 
 
@@ -52,7 +53,7 @@ class FormDeploymentAgent:
         )
 
         try:
-            return self.llm.invoke(prompt, temperature=0.2)
+            return self.llm.invoke_llm(prompt, temperature=LLM_TEMPERATURE_LOW)
         except Exception:
             # Keep the example repo resilient even if a real provider is misconfigured.
             if last_deploy_status:

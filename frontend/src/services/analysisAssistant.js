@@ -15,8 +15,9 @@ import { postJson } from "./http.js";
 
 /**
  * @param {string} data_summary
- * @returns {Promise<{insights: string}>}
+ * @param {string | undefined} session_id
+ * @returns {Promise<{insights: string, session_id: string}>}
  */
-export async function analyzeData(data_summary) {
-	return await postJson("/analysis/", { data_summary });
+export async function analyzeData(data_summary, session_id) {
+	return await postJson("/analysis/", { data_summary, session_id });
 }
