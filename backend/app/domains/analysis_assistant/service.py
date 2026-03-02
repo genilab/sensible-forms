@@ -19,6 +19,7 @@ from app.domains.analysis_assistant.schemas import (
 from app.domains.analysis_assistant.graph import build_graph
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.memory.checkpointers import get_checkpointer
+from app.middleware.guardrails import get_pii_input_redactor
 from uuid import uuid4
 
 
@@ -28,6 +29,7 @@ class AnalysisAssistantService:
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResponse:
         data_summary = (request.data_summary or "").strip()
+        data_summary = get_pii_input_redactor().redact_text(data_summary)
         session_id = request.session_id or uuid4()
         thread_id = f"analysis_assistant:{session_id}"
 
