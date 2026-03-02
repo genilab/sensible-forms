@@ -11,17 +11,21 @@ From the repo root:
 
 1. Create/activate a Python virtual environment.
 2. Install backend dependencies:
-    - `pip install -r backend/requirements.txt`
-3. (Optional) Configure Gemini:
-    - Create a `.env` file in `backend/`.
-    - Add one of:
-       - `GEMINI_API_KEY=...`
-       - `GOOGLE_API_KEY=...`
+    - `pip install -r requirements.txt`
+3. (Optional) Configure LLM provider(s):
+    - Create a `.env` file in the repo root.
+    - Add **one** of the following, depending on which provider you want to use:
+       - `OPENAI_API_KEY=...` (for OpenAI-compatible endpoints -- including OwlChat API, which can provide Gemini models...)
+       - `GOOGLE_API_KEY=...` (for Gemini models accessed directly through Google AI Studio.)
+       - (You may set both if your backend is configured to support multiple providers.)
 
 Start the API (pick one):
 
 - From `backend/`:
    - `uvicorn app.main:app --reload`
+
+- From the repo root:
+    - `uvicorn app.main:app --app-dir backend --reload`
 
 ### 2) Frontend (Vite + React)
 

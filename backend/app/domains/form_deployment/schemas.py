@@ -12,6 +12,7 @@ These models represent the data contracts for this domain only.
 # Example Code: Form deployment is upload-to-deploy (deterministic) plus chat for follow-up instructions.
 from pydantic import BaseModel
 from typing import Optional
+from uuid import UUID
 
 
 class FormDeploymentRequest(BaseModel):
@@ -28,6 +29,9 @@ class FormDeploymentRequest(BaseModel):
     """
 
     message: str
+    # Stable identifier for conversational context across multiple calls.
+    # If omitted, the backend will generate one and return it in the response.
+    session_id: Optional[UUID] = None
     last_deploy_filename: Optional[str] = None
     last_deploy_status: Optional[str] = None
     last_deploy_feedback: Optional[str] = None
@@ -35,6 +39,7 @@ class FormDeploymentRequest(BaseModel):
 
 class FormDeploymentResponse(BaseModel):
     message: str
+    session_id: UUID
 
 
 class FormDeploymentDeployResponse(BaseModel):

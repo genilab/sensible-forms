@@ -14,6 +14,7 @@ This file should not contain HTTP or infrastructure logic.
 
 # Example Code:
 from app.domains.analysis_assistant.prompts import SYSTEM_PROMPT
+from app.core.constants import LLM_TOKEN_UPPER_LIMIT
 from app.infrastructure.llm.client import LLMClient
 
 
@@ -30,4 +31,4 @@ class AnalysisAssistantAgent:
         )
         # Some providers (e.g., Gemini) will truncate when max tokens is small.
         # Keep this comfortably above typical 3-5 bullet responses.
-        return self.llm.invoke(prompt, max_tokens=1024)
+        return self.llm.invoke_llm(prompt, max_output_tokens=LLM_TOKEN_UPPER_LIMIT)

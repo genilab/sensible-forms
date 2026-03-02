@@ -10,7 +10,12 @@ This file should NOT contain business logic.
 It is the composition root where components are wired together.
 """
 
-# Example Code:
+from dotenv import find_dotenv, load_dotenv
+
+# Load environment variables from a local .env (if present).
+# We intentionally do not hardcode a path here; python-dotenv will search upward from CWD.
+load_dotenv(find_dotenv(usecwd=True), override=False)
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api import question_generation, form_deployment, analysis_assistant, uploads
