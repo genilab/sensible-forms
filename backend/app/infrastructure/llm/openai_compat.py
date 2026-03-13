@@ -2,8 +2,7 @@
 
 This client talks to an OpenAI-compatible Chat Completions endpoint using LangChain.
 
-It intentionally adheres to the project's minimal, provider-agnostic interface:
-`LLMClient.invoke(messages, ...) -> str`.
+It intentionally adheres to the project's minimal, provider-agnostic interface.
 
 Configuration is read from `app.infrastructure.config.settings`:
 - OPENAI_API_KEY
@@ -27,7 +26,7 @@ class OpenAICompatibleClient(LLMClient):
         api_key: Optional[str] = None,
         base_url: Optional[str] = None,
         model: Optional[str] = None,
-        timeout_seconds: float = 60.0,
+        timeout_seconds: float = 60.0,  # Magic Number: generous default timeout for OpenAI-compatible calls, which can sometimes be slow (e.g. with large context or tool calls)
     ):
         resolved_key = api_key if api_key is not None else settings.OPENAI_API_KEY
         if not resolved_key:
@@ -59,12 +58,13 @@ class OpenAICompatibleClient(LLMClient):
     def invoke(
         self,
         messages,
-        temperature: float = 0.7,
+        tools: list[Any] | None = None,
+        temperature: float = 0.7,   # Magic Number: default temp for general chatbot responses <- Needs to be a core variable
         max_tokens: Optional[int] = None,
         max_output_tokens: Optional[int] = None,
         config: dict | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> Any:
         try:
             lc_messages = to_langchain_messages(messages)
 
@@ -74,7 +74,15 @@ class OpenAICompatibleClient(LLMClient):
             if effective_max_tokens is not None:
                 bind_kwargs["max_tokens"] = effective_max_tokens
 
-            result = self._llm.bind(**bind_kwargs).invoke(lc_messages, config=config)
+            llm = self._llm
+            if tools:
+                llm = llm.bind_tools(tools)
+
+            result = llm.bind(**bind_kwargs).invoke(lc_messages, config=config)
+
+            if tools:
+                return result
+
             content = getattr(result, "content", None)
             return content if isinstance(content, str) else str(result)
 

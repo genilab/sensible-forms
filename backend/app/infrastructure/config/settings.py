@@ -25,8 +25,9 @@ def _default_cors_origins() -> str:
 class Settings(BaseSettings):
     # `extra="ignore"` prevents crashes when unrelated env vars exist.
     model_config = SettingsConfigDict(
-        # `.env` is located via search in the main.py file (supports running from repo root OR backend/).
-        env_file=".env",
+        # Match main.py behavior: search upward from CWD for `.env`.
+        # This makes settings robust for scripts/tests that import settings from different working dirs.
+        env_file=find_dotenv(usecwd=True) or None,
         extra="ignore",
     )
 
@@ -51,7 +52,7 @@ class Settings(BaseSettings):
 
     # For OpenAI-compatible mode, set this to the gateway's OpenAI route.
     OPENAI_BASE_URL: str | None = Field(default=None, env="OPENAI_BASE_URL")
-    OPENAI_MODEL: str = Field(default="gemini-3-pro-preview")
+    OPENAI_MODEL: str = Field(default="gemini-2.5-pro")
 
     # Comma-separated list of allowed origins.
     CORS_ALLOW_ORIGINS: str = Field(

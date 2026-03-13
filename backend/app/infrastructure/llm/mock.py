@@ -18,12 +18,13 @@ class MockLLMClient(LLMClient):
     def invoke(
         self,
         messages,
+        tools: list[Any] | None = None,
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
         max_output_tokens: Optional[int] = None,
         config: dict | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> Any:
         # Normalize to a single prompt string for the mock.
         prompt: str
         if isinstance(messages, str):
@@ -98,6 +99,15 @@ class MockLLMClient(LLMClient):
             )
 
         if "deployment confirmation" in lowered or "deploy" in lowered:
-            return "Mock deployment complete: your form is ready to share."
+            text = "Mock deployment complete: your form is ready to share."
+        else:
+            text = "Mock response generated for the provided prompt."
 
-        return "Mock response generated for the provided prompt."
+        if tools:
+            # Tool calls are not simulated in the mock; return an AIMessage so
+            # downstream routing logic can treat it like a normal model response.
+            from langchain_core.messages import AIMessage
+
+            return AIMessage(content=text)
+
+        return text

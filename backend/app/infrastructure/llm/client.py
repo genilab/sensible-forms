@@ -57,11 +57,19 @@ class LLMClient(ABC):
     def invoke(
         self,
         messages: Any,
+        tools: list[Any] | None = None,
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
         max_output_tokens: Optional[int] = None,
         config: dict | None = None,
         **kwargs: Any,
-    ) -> str:
-        """Invoke the underlying provider and return generated text."""
+    ) -> Any:
+        """Invoke the underlying provider.
+
+        Convention:
+        - If `tools` is falsy/empty, implementations should return generated text (str).
+        - If `tools` is a non-empty list, implementations should bind tools and return
+          the provider-native message object (typically a LangChain AIMessage) so
+          LangGraph can route on tool calls.
+        """
         raise NotImplementedError
