@@ -46,12 +46,17 @@ class GeminiClient(LLMClient):
     def invoke(
         self,
         messages,
+        tools: list[Any] | None = None,
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
         max_output_tokens: Optional[int] = None,
         config: dict | None = None,
         **kwargs: Any,
-    ) -> str:
+    ) -> Any:
+        llm = self._llm
+        if tools:
+            llm = llm.bind_tools(tools)
+
         try:
             lc_messages = to_langchain_messages(messages)
 
@@ -63,7 +68,11 @@ class GeminiClient(LLMClient):
             if effective_max_output is not None:
                 bind_kwargs["max_output_tokens"] = effective_max_output
 
-            result = self._llm.bind(**bind_kwargs).invoke(lc_messages, config=config)
+            result = llm.bind(**bind_kwargs).invoke(lc_messages, config=config)
+
+            if tools:
+                return result
+
             content = getattr(result, "content", None)
             return content if isinstance(content, str) else str(result)
 
