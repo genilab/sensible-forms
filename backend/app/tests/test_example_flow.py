@@ -35,6 +35,25 @@ def test_analysis_flow():
     assert len(body["insights"]) > 0
 
 
+def test_analysis_flow_accepts_messages():
+    r = client.post(
+        "/analysis/",
+        json={
+            "messages": [
+                {
+                    "role": "user",
+                    "content": "Given this summary, provide 3 insights: N=42 satisfaction 3.8/5.",
+                }
+            ]
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert "insights" in body
+    assert isinstance(body["insights"], str)
+    assert len(body["insights"]) > 0
+
+
 def test_form_deployment_flow():
     files = {"file": ("survey.csv", b"question_text,question_type\nHello?,short_text\n", "text/csv")}
     deploy_r = client.post("/form-deployment/deploy", files=files)
@@ -69,3 +88,23 @@ def test_upload_flow_accepts_csv():
     r = client.post("/uploads/", files=files)
     assert r.status_code == 200
     assert r.json()["filename"] == "sample.csv"
+
+
+def test_analysis_upload_ingests_csv_and_persists_session_state():
+    # First upload seeds the session with a single CSV.
+    session_id = "00000000-0000-0000-0000-000000000001"
+    files = {"file": ("one.csv", b"a,b\n1,2\n", "text/csv")}
+    data = {"session_id": session_id}
+    r1 = client.post("/analysis/upload", files=files, data=data)
+    assert r1.status_code == 200
+    body1 = r1.json()
+    assert body1["session_id"] == session_id
+    assert "Thanks" in body1["insights"]
+
+    # Second upload in the same session should see prior state.
+    files2 = {"file": ("two.csv", b"a,b\n3,4\n", "text/csv")}
+    r2 = client.post("/analysis/upload", files=files2, data=data)
+    assert r2.status_code == 200
+    body2 = r2.json()
+    assert body2["session_id"] == session_id
+    assert "I now have access to 2 CSV files" in body2["insights"]

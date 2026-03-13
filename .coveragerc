@@ -1,0 +1,15 @@
+[run]
+branch = True
+source =
+    backend/app
+omit =
+    */__pycache__/*
+    */__init__.py
+    backend/app/core/*
+    backend/app/tests/*
+    backend/app/infrastructure/llm/mock.py
+
+[report]
+show_missing = True
+skip_covered = False
+precision = 0
