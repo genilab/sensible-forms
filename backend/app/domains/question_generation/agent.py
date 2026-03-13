@@ -23,5 +23,5 @@ class QuestionGenerationAgent:
 
     def run(self, topic: str):
         prompt = f"{SYSTEM_PROMPT}\nTopic: {topic}"
-        response = self.llm.invoke(prompt)
+        response = self.llm.invoke_llm(prompt)
         return [line.strip("- ") for line in response.splitlines() if line.strip()]

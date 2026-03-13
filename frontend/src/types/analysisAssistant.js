@@ -10,7 +10,7 @@
 
 // Example Code:
 
-/** @typedef {{ data_summary: string }} AnalysisRequest */
-/** @typedef {{ insights: string }} AnalysisResponse */
+/** @typedef {{ data_summary: string, session_id?: string }} AnalysisRequest */
+/** @typedef {{ insights: string, session_id: string }} AnalysisResponse */
 
 export {};
