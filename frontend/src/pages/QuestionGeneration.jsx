@@ -14,8 +14,10 @@
 import { useMemo, useState } from "react";
 
 import { generateQuestions } from "../services/questionGenerationService.js";
+import { getOrCreateSessionId } from "../services/session.js";
 
 export default function QuestionGeneration() {
+	const sessionId = useMemo(() => getOrCreateSessionId("question_generation_session_id"), []);
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
@@ -39,7 +41,7 @@ export default function QuestionGeneration() {
 		setMessages((prev) => [...prev, { role: "user", text: topic }]);
 		setIsLoading(true);
 		try {
-			const res = await generateQuestions(topic);
+			const res = await generateQuestions(topic, sessionId);
 			const formatted = res.questions.map((q) => `- ${q}`).join("\n");
 			setMessages((prev) => [...prev, { role: "bot", text: formatted }]);
 		} catch (err) {

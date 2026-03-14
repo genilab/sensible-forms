@@ -15,8 +15,10 @@
 import { useMemo, useState } from "react";
 
 import { analyzeData } from "../services/analysisAssistant.js";
+import { getOrCreateSessionId } from "../services/session.js";
 
 export default function AnalysisAssistant() {
+	const sessionId = useMemo(() => getOrCreateSessionId("analysis_assistant_session_id"), []);
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
@@ -40,7 +42,7 @@ export default function AnalysisAssistant() {
 		setMessages((prev) => [...prev, { role: "user", text: dataSummary }]);
 		setIsLoading(true);
 		try {
-			const res = await analyzeData(dataSummary);
+			const res = await analyzeData(dataSummary, sessionId);
 			setMessages((prev) => [...prev, { role: "bot", text: res.insights }]);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
