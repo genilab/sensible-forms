@@ -1,68 +1,73 @@
-/**
- * App.jsx
- *
- * Minimal shell that unifies the three LLM-powered workflows behind one UI.
- * This intentionally avoids extra dependencies (no router) for a first-commit example.
- */
-
-// Example Code:
 import { useMemo, useState } from "react";
+import logo from "./assets/placeholder-logo.png";
 
 import AnalysisAssistant from "./pages/AnalysisAssistant.jsx";
 import QuestionGeneration from "./pages/QuestionGeneration.jsx";
 import FormDeployment from "./pages/FormDeployment.jsx";
 
 const PAGES = {
-  questionGeneration: {
-    label: "Question Generation",
-    Component: QuestionGeneration
-  },
-  analysisAssistant: {
-    label: "Analysis Assistant",
-    Component: AnalysisAssistant
-  },
-  formDeployment: {
-    label: "Form Deployment",
-    Component: FormDeployment
-  }
+  questionGeneration: { label: "Question Generation", Component: QuestionGeneration, icon: "💭" },
+  formDeployment: { label: "Form Deployment", Component: FormDeployment, icon: "🚀" },
+  analysisAssistant: { label: "Analysis Assistant", Component: AnalysisAssistant, icon: "📊" }
 };
 
 export default function App() {
   const [active, setActive] = useState("questionGeneration");
-
   const ActiveComponent = useMemo(() => PAGES[active].Component, [active]);
 
   return (
     <div className="container">
-      <div className="topbar">
-        <div>
-          <div style={{ fontWeight: 700 }}>SensibleForms (Example UI)</div>
-          <div className="small">
-            Demonstrates frontend → FastAPI → domain service → agent → LLM client
+      <div className="shell">
+        {/* Header */}
+        <div className="topbar">
+          <div className="brand">
+            <img src={logo} alt="SensibleForms logo placeholder" className="logo" />
+            <div>
+              <div className="brandTitle">SensibleForms</div>
+              <div className="brandSub">
+                LLM-powered workflows for survey creation, analysis, and deployment
+              </div>
+            </div>
           </div>
+
         </div>
 
-        <div className="nav" role="tablist" aria-label="Bots">
-          {Object.entries(PAGES).map(([key, value]) => (
-            <button
-              key={key}
-              type="button"
-              className="button"
-              aria-pressed={active === key}
-              onClick={() => setActive(key)}
-            >
-              {value.label}
-            </button>
-          ))}
+        {/* Sidebar + content */}
+        <div className="layout">
+          <aside className="sidebar" aria-label="Navigation">
+            <div className="sidebarSectionLabel">Workflows</div>
+
+            <nav className="sidebarNav" role="tablist" aria-label="Workflows">
+              {Object.entries(PAGES).map(([key, value]) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="sideItem"
+                  aria-pressed={active === key}
+                  onClick={() => setActive(key)}
+                >
+                  <span className="sideIcon" aria-hidden="true">
+                    {value.icon}
+                  </span>
+                  <span className="sideLabel">{value.label}</span>
+                </button>
+              ))}
+            </nav>
+
+            <div className="sidebarFooter small">
+              Backend: <code>http://localhost:8000</code>
+              <div style={{ marginTop: 6 }}>
+                Env: <code>VITE_API_BASE_URL</code>
+              </div>
+            </div>
+          </aside>
+
+          <main className="content">
+            <div className="card">
+              <ActiveComponent />
+            </div>
+          </main>
         </div>
-      </div>
-
-      <div className="panel">
-        <ActiveComponent />
-      </div>
-
-      <div className="small" style={{ marginTop: 10 }}>
-        Backend default: <code>http://localhost:8000</code> (override with <code>VITE_API_BASE_URL</code>)
       </div>
     </div>
   );
