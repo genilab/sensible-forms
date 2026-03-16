@@ -1,3 +1,8 @@
+import os
+
+# Keep tests deterministic even when developers have real API keys in their environment.
+os.environ.setdefault("LLM_PROVIDER", "mock")
+
 from fastapi.testclient import TestClient
 
 from app.main import app

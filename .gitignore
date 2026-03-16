@@ -1,9 +1,9 @@
-# Python .gitignore template from GitHub
-
-# Byte-compiled / optimized / DLL files
+# --- Python ---
 __pycache__/
+**/__pycache__/
 *.py[codz]
 *$py.class
+.pytest_cache/
 
 # C extensions
 *.so
@@ -50,7 +50,6 @@ coverage.xml
 *.cover
 *.py.cover
 .hypothesis/
-.pytest_cache/
 cover/
 
 # Translations
@@ -58,7 +57,6 @@ cover/
 *.pot
 
 # Django stuff:
-*.log
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
@@ -78,7 +76,7 @@ docs/_build/
 target/
 
 # Jupyter Notebook
-.ipynb_checkpoints
+.ipynb_checkpoints/
 
 # IPython
 profile_default/
@@ -124,7 +122,7 @@ ipython_config.py
 #pixi.lock
 #   Pixi creates a virtual environment in the .pixi directory, just like venv module creates one
 #   in the .venv directory. It is recommended not to include this directory in version control.
-.pixi
+.pixi/
 
 # PEP 582; used by e.g. github.com/David-OConnor/pyflow and github.com/pdm-project/pdm
 __pypackages__/
@@ -136,12 +134,10 @@ celerybeat.pid
 # SageMath parsed files
 *.sage.py
 
-# Environments
-.env
-.envrc
-.venv
-env/
+# Virtual environments
+.venv/
 venv/
+env/
 ENV/
 env.bak/
 venv.bak/
@@ -184,9 +180,9 @@ cython_debug/
 .abstra/
 
 # Visual Studio Code
-#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore 
+#  Visual Studio Code specific template is maintained in a separate VisualStudioCode.gitignore
 #  that can be found at https://github.com/github/gitignore/blob/main/Global/VisualStudioCode.gitignore
-#  and can be added to the global gitignore or merged into this file. However, if you prefer, 
+#  and can be added to the global gitignore or merged into this file. However, if you prefer,
 #  you could uncomment the following to ignore the entire vscode folder
 # .vscode/
 
@@ -207,3 +203,38 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+
+# --- Node / Vite ---
+node_modules/
+frontend/node_modules/
+frontend/dist/
+
+# --- Environment files (secrets) ---
+.env
+.envrc
+backend/.env
+frontend/.env
+.env.*
+
+# --- Common secret key/cert formats ---
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+*.cer
+*.der
+
+# --- Example "sensitive documents" / local artifacts ---
+# Keep real datasets, uploads, and private docs out of git.
+backend/uploads/
+frontend/uploads/
+backend/data/
+frontend/data/
+backend/private/
+frontend/private/
+backend/sensitive/
+frontend/sensitive/
+
+# Logs
+*.log

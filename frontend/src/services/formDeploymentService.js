@@ -15,12 +15,14 @@ import { postJson, postMultipart } from "./http.js";
 
 /**
  * @param {string} message
+ * @param {string | undefined} session_id
  * @param {{ last_deploy_filename?: (string|null), last_deploy_status?: (string|null), last_deploy_feedback?: (string|null) } | undefined} context
- * @returns {Promise<{message: string}>}
+ * @returns {Promise<{message: string, session_id: string}>}
  */
-export async function sendDeploymentMessage(message, context) {
+export async function sendDeploymentMessage(message, session_id, context) {
 	return await postJson("/form-deployment/chat", {
 		message,
+		session_id,
 		last_deploy_filename: context?.last_deploy_filename ?? null,
 		last_deploy_status: context?.last_deploy_status ?? null,
 		last_deploy_feedback: context?.last_deploy_feedback ?? null

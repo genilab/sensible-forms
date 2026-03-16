@@ -17,11 +17,32 @@ from app.infrastructure.llm.client import LLMClient
 class MockLLMClient(LLMClient):
     def invoke(
         self,
-        prompt: str,
+        messages,
         temperature: float = 0.7,
         max_tokens: Optional[int] = None,
+        max_output_tokens: Optional[int] = None,
+        config: dict | None = None,
         **kwargs: Any,
     ) -> str:
+        # Normalize to a single prompt string for the mock.
+        prompt: str
+        if isinstance(messages, str):
+            prompt = messages
+        elif isinstance(messages, list):
+            parts: list[str] = []
+            for item in messages:
+                if isinstance(item, str):
+                    parts.append(item)
+                elif isinstance(item, dict) and "content" in item:
+                    parts.append(str(item.get("content") or ""))
+                else:
+                    # Best-effort fallback (e.g. LangChain BaseMessage)
+                    content = getattr(item, "content", None)
+                    parts.append(str(content) if content is not None else str(item))
+            prompt = "\n".join([p for p in parts if p])
+        else:
+            prompt = str(messages)
+
         lowered = prompt.lower()
 
         # Return line-based bullets for agents that parse lines.

@@ -9,14 +9,19 @@ Defines:
 These models represent the data contracts for this domain only.
 """
 
-# Example Code:
+from typing import List, Optional
+from uuid import UUID
+
 from pydantic import BaseModel
-from typing import List
 
 
 class QuestionRequest(BaseModel):
     topic: str
+    # Stable identifier for conversational context across multiple calls.
+    # If omitted, the backend will generate one and return it in the response.
+    session_id: Optional[UUID] = None
 
 
 class QuestionResponse(BaseModel):
     questions: List[str]
+    session_id: UUID

@@ -17,6 +17,7 @@ from typing import Any, Optional
 
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.config.settings import settings
+from app.infrastructure.llm.langchain_messages import to_langchain_messages
 
 
 class GeminiClient(LLMClient):
@@ -28,37 +29,43 @@ class GeminiClient(LLMClient):
             )
 
         try:
-            from google import genai
+            from langchain_google_genai import ChatGoogleGenerativeAI
         except ImportError as e:
             raise RuntimeError(
-                "Gemini client requires the 'google-genai' package. Install it in your backend environment."
+                "Gemini client requires LangChain's 'langchain-google-genai' package. "
+                "Install it in your backend environment with: pip install langchain-google-genai"
             ) from e
 
-        self._client = genai.Client(api_key=resolved_key)
         self._model_name = model or settings.DEFAULT_MODEL
+        # Instantiate once; per-call params are applied via `.bind()`.
+        self._llm = ChatGoogleGenerativeAI(
+            google_api_key=resolved_key,
+            model=self._model_name,
+        )
 
     def invoke(
         self,
-        prompt: str,
+        messages,
         temperature: float = 0.7,
-        max_tokens: Optional[int] = 512,
+        max_tokens: Optional[int] = None,
+        max_output_tokens: Optional[int] = None,
+        config: dict | None = None,
         **kwargs: Any,
     ) -> str:
         try:
-            config: dict[str, Any] = {"temperature": temperature}
-            if max_tokens is not None:
-                config["max_output_tokens"] = max_tokens
+            lc_messages = to_langchain_messages(messages)
 
-            # `kwargs` can include provider-specific config fields.
-            response = self._client.models.generate_content(
-                model=self._model_name,
-                contents=prompt,
-                config={**config, **kwargs},
+            effective_max_output = (
+                max_output_tokens if max_output_tokens is not None else max_tokens
             )
 
-            # The SDK returns a structured response; `.text` is the common convenience accessor.
-            return response.text
+            bind_kwargs: dict[str, Any] = {**kwargs, "temperature": temperature}
+            if effective_max_output is not None:
+                bind_kwargs["max_output_tokens"] = effective_max_output
+
+            result = self._llm.bind(**bind_kwargs).invoke(lc_messages, config=config)
+            content = getattr(result, "content", None)
+            return content if isinstance(content, str) else str(result)
 
         except Exception as e:
-            # You could raise a custom domain exception here
             raise RuntimeError(f"Gemini generation failed: {str(e)}")

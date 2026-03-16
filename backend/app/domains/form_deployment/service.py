@@ -14,30 +14,64 @@ Acts as the entry point for this domain's business logic.
 
 from __future__ import annotations
 
-# Example Code:
-from app.domains.form_deployment.agent import FormDeploymentAgent
 from app.domains.form_deployment.schemas import (
     FormDeploymentRequest,
     FormDeploymentResponse,
     FormDeploymentDeployResponse,
 )
+from app.domains.form_deployment.graph import build_graph
 from app.infrastructure.llm.client import LLMClient
+from app.infrastructure.memory.checkpointers import get_checkpointer
 from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
+from uuid import uuid4
 
 
 class FormDeploymentService:
     def __init__(self, llm_client: LLMClient):
         # Deployment attempt is deterministic, but chat is LLM-assisted.
-        self.agent = FormDeploymentAgent(llm_client)
+        self._graph = build_graph(llm=llm_client, checkpointer=get_checkpointer())
 
-    def chat(self, request: FormDeploymentRequest):
-        result = self.agent.run(
-            request.message,
-            last_deploy_filename=request.last_deploy_filename,
-            last_deploy_status=request.last_deploy_status,
-            last_deploy_feedback=request.last_deploy_feedback,
-        )
-        return FormDeploymentResponse(message=result)
+    def chat(self, request: FormDeploymentRequest) -> FormDeploymentResponse:
+        msg = (request.message or "").strip()
+        if not msg:
+            session_id = request.session_id or uuid4()
+            return FormDeploymentResponse(
+                message="Ask a question (e.g., 'How do I deploy a CSV?' or 'What do I fix?').",
+                session_id=session_id,
+            )
+
+        session_id = request.session_id or uuid4()
+        thread_id = f"form_deployment:{session_id}"
+
+        try:
+            result = self._graph.invoke(
+                {
+                    "message": msg,
+                    "last_deploy_filename": request.last_deploy_filename,
+                    "last_deploy_status": request.last_deploy_status,
+                    "last_deploy_feedback": request.last_deploy_feedback,
+                    "messages": [],
+                },
+                config={"configurable": {"thread_id": thread_id}},
+            )
+            message = result.get("response_message") or ""
+            return FormDeploymentResponse(message=message, session_id=session_id)
+        except Exception:
+            # Keep the example repo resilient even if a real provider is misconfigured.
+            if request.last_deploy_status:
+                feedback = f" {request.last_deploy_feedback}" if request.last_deploy_feedback else ""
+                return FormDeploymentResponse(
+                    message=(
+                        f"Deterministic deployment status: {request.last_deploy_status}."
+                        + (f" Last file: {request.last_deploy_filename}." if request.last_deploy_filename else "")
+                        + feedback
+                    ),
+                    session_id=session_id,
+                )
+            return FormDeploymentResponse(
+                message="Upload a CSV via Deploy first, or ask for the required columns and steps.",
+                session_id=session_id,
+            )
 
     def attempt_deploy(self, *, filename: str, file_bytes: bytes) -> FormDeploymentDeployResponse:
         """Deterministically validate a CSV and return a deployment status.
