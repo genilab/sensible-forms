@@ -20,6 +20,8 @@ from app.domains.form_deployment.schemas import (
 )
 from app.infrastructure.llm.factory import get_llm_client
 from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
+from app.domains.form_deployment.tools import form_deployment_check_csv_tool
+
 
 router = APIRouter(prefix="/form-deployment", tags=["Form Deployment"])
 
@@ -33,12 +35,13 @@ def deployment_chat(request: FormDeploymentRequest):
 
 @router.post("/deploy", response_model=FormDeploymentDeployResponse)
 async def deploy_form(file: UploadFile = File(...)):
+    # Read content and assert instance properties
     content = await file.read()
-    try:
-        validate_csv_file(file.filename, file_size_bytes=len(content))
-        validate_csv_required_columns(content, required_columns=["question_text", "question_type"])
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
+    assert isinstance(file.filename, str)
+    
+    # Get response data
     service = FormDeploymentService(get_llm_client())
-    return service.attempt_deploy(filename=file.filename, file_bytes=content)
+    response = service.attempt_deploy(filename=file.filename, file_bytes=content)
+
+    # Return result
+    return response

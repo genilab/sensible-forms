@@ -23,6 +23,7 @@ from app.domains.form_deployment.schemas import (
 )
 from app.infrastructure.llm.client import LLMClient
 from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
+from app.domains.form_deployment.tools import form_deployment_check_csv_tool, form_deployment_deploy_form_tool
 
 
 class FormDeploymentService:
@@ -46,6 +47,7 @@ class FormDeploymentService:
         It only demonstrates how a dedicated form deployment endpoint could behave.
         """
 
+        # Check CSV file structure
         try:
             validate_csv_file(filename, file_size_bytes=len(file_bytes))
         except ValueError as e:
@@ -55,7 +57,8 @@ class FormDeploymentService:
                 feedback=str(e),
             )
 
-        required = ["question_text", "question_type"]
+        # Check CSV file columns
+        required = ["question_id", "question_text", "question_type", "response_options", "scale_min", "scale_max", "scale_min_label", "scale_max_label", "required"]
         try:
             validate_csv_required_columns(file_bytes, required_columns=required)
         except ValueError as e:
@@ -65,13 +68,36 @@ class FormDeploymentService:
                 feedback=str(e),
             )
 
-        # Additional logic for deployment would go here in a production implementation.
+        # Check CSV file content
+        try:
+            form_deployment_check_csv_tool(file_bytes)
+        except ValueError as e:
+            return FormDeploymentDeployResponse(
+                filename=filename,
+                status="error",
+                feedback=str(e),
+            )
 
+        # Additional logic for deployment
+        response = None
+        try:
+            response = form_deployment_deploy_form_tool(filename, file_bytes)
+            ### In the near future, some measure to store formId data for the user should be added
+        except ValueError as e:
+            return FormDeploymentDeployResponse(
+                filename=filename,
+                status="error",
+                feedback=str(e),
+            )
+        
+        # Successfull deployment return
         return FormDeploymentDeployResponse(
             filename=filename,
             status="success",
             feedback=(
-                "Example deployment succeeded (mock). "
-                "In production this would create/update a Google Form from your CSV."
+                "Example deployment succeeded!"
+                f"Form ID: {response["formId"]}"
+                f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit"
+                f"Responder link: {response["responderUri"]}"
             ),
         )

@@ -215,6 +215,8 @@ frontend/dist/
 backend/.env
 frontend/.env
 .env.*
+backend/client_secrets.json
+backend/token.json
 
 # --- Common secret key/cert formats ---
 *.pem

@@ -17,3 +17,11 @@ httpx
 
 # Required for UploadFile/form-data parsing
 python-multipart
+pandas
+numpy
+
+# Required for GoogleAPI and OAuth interactions
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+oauth2client
