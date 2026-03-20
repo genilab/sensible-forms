@@ -16,8 +16,9 @@ import { postJson } from "./http.js";
 
 /**
  * @param {string} topic
- * @returns {Promise<{questions: string[]}>}
+ * @param {string | undefined} session_id
+ * @returns {Promise<{questions: string[], session_id: string}>}
  */
-export async function generateQuestions(topic) {
-  return await postJson("/question-generation/", { topic });
+export async function generateQuestions(topic, session_id) {
+	return await postJson("/question-generation/", { topic, session_id });
 }

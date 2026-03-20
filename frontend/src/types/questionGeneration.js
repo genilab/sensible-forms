@@ -9,7 +9,7 @@
 
 // Example Code:
 
-/** @typedef {{ topic: string }} QuestionRequest */
-/** @typedef {{ questions: string[] }} QuestionResponse */
+/** @typedef {{ topic: string, session_id?: string }} QuestionRequest */
+/** @typedef {{ questions: string[], session_id: string }} QuestionResponse */
 
 export {};
