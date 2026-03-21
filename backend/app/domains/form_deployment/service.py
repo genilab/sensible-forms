@@ -18,12 +18,17 @@ from app.domains.form_deployment.schemas import (
     FormDeploymentRequest,
     FormDeploymentResponse,
     FormDeploymentDeployResponse,
+    FormDeploymentRetrieveResponse,
 )
 from app.domains.form_deployment.graph import build_graph
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.memory.checkpointers import get_checkpointer
 from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
-from app.domains.form_deployment.tools import form_deployment_check_csv_tool, form_deployment_deploy_form_tool
+from app.domains.form_deployment.tools import (
+    form_deployment_check_csv_tool,
+    form_deployment_deploy_form_tool,
+    form_deployment_retrieve_form_tool,
+)
 from uuid import uuid4
 
 
@@ -75,11 +80,7 @@ class FormDeploymentService:
             )
 
     def attempt_deploy(self, *, filename: str, file_bytes: bytes) -> FormDeploymentDeployResponse:
-        """Deterministically validate a CSV and return a deployment status.
-
-        This does NOT deploy to Google Forms in this example repo.
-        It only demonstrates how a dedicated form deployment endpoint could behave.
-        """
+        """Deterministically validate a CSV and return a deployment status."""
 
         # Check CSV file structure
         try:
@@ -134,4 +135,23 @@ class FormDeploymentService:
                 f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n"
                 f"Responder link: {response["responderUri"]}"
             ),
+        )
+
+    def attempt_retrieve(self, *, formId: str) -> FormDeploymentRetrieveResponse:
+        """Deterministically access a deployed form and return responses."""
+        try:
+            csvContent = form_deployment_retrieve_form_tool(formId)
+            assert isinstance(csvContent, str)
+        except Exception as e:
+            return FormDeploymentRetrieveResponse(
+                formId=formId,
+                status="error",
+                content=str(e),
+            )
+
+        # Successfull retrieval return
+        return FormDeploymentRetrieveResponse(
+            formId=formId,
+            status="success",
+            content=csvContent,
         )

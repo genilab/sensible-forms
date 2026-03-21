@@ -10,6 +10,7 @@ Responsible for:
 from __future__ import annotations
 
 import io
+import csv
 import pandas as pd
 import numpy as np
 from pathlib import Path
@@ -297,11 +298,12 @@ def form_deployment_deploy_form_tool(
         return response
 
 
-# Convert response and question Data to CSV
+# Convert response and question Data to CSV (now unused)
 def convert_to_csv_dict(responses: list, questions: dict) -> dict[str, list]:
-    """Convert response and question Data to CSV."""
+    """Convert response and question Data to CSV as a dict."""
     columns = ["responseId", "lastSubmittedTime"] + [question for question in questions.values()]
-    # Fix: Initialize out_dict with a new empty list for each key
+    
+    # Initialize out_dict with a new empty list for each key
     out_dict = {key: [] for key in columns}
 
     for response in responses: # Iterate through all responses
@@ -320,43 +322,77 @@ def convert_to_csv_dict(responses: list, questions: dict) -> dict[str, list]:
     return out_dict
 
 
+# Convert response and question Data to CSV
+def convert_to_csv_str(responses: list, questions: dict) -> str:
+    """Convert response and question Data to CSV as a str."""
+    out_str = io.StringIO()
+    writer = csv.writer(out_str, quoting=csv.QUOTE_MINIMAL)
+
+    # Initialize out_str with columns / header row
+    columns = ["responseId", "lastSubmittedTime"] + list(questions.values())
+    writer.writerow(columns)
+
+    # Append rows
+    for response in responses: # Iterate through all responses
+        row = [
+            response.get("responseId"), # Add row responseId
+            response.get("lastSubmittedTime") # Add row lastSubmittedTime
+        ]
+
+        answers = response.get("answers")
+        for question_id in questions.keys(): # Iterate through all questions
+            try:
+                # Get the value and replace newline characters with a space
+                row.append(
+                    answers
+                    .get(question_id, {})
+                    .get("textAnswers", {})
+                    .get("answers", [])[0]
+                    .get("value", "")
+                    .replace('\n', ' ')
+                )
+            except (KeyError, IndexError, TypeError):
+                row.append("No answer") # Add "No answer" if not found
+        
+        writer.writerow(row)
+    return out_str.getvalue()
+
+
 # Deploy a Form Using Google Forms API
 def form_deployment_retrieve_form_tool(
     formId: str,
     *,
     encoding: str = "utf-8",
-) -> dict: # pyright: ignore[reportReturnType]
+    output_type: str = "str",
+) -> str | dict:
     """Retrieve remote form data as a CSV file. 
     Returns a response dictionary containing the CSV content."""
     if not formId: 
         raise ValueError("No Form ID detected. Enter a valid Form ID.")
-    responses = None
-    questions = None
 
     # Get user credentials
     creds = get_credentials()
     with build("forms", "v1", credentials=creds) as form_service: 
         # Get the responses of your specified form:
-        result = form_service.forms().responses().list(formId=formId).execute()
-        responses = result.get("responses")
+        resp_data = form_service.forms().responses().list(formId=formId).execute()
+        responses = resp_data.get("responses")
 
         # Get the questions of your specified form:
-        result = form_service.forms().get(formId=formId).execute()
-        questions = {}
-        for item in result["items"]:
-            question_id = item["questionItem"]["question"]["questionId"]
-            title = item.get("title", "")
-            questions[question_id] = title
+        form_data = form_service.forms().get(formId=formId).execute()
+        questions = {
+            item["questionItem"]["question"]["questionId"]: item.get("title", "")
+            for item in form_data.get("items", []) if "questionItem" in item
+        }
         
-    # Convert the responses and questions to the dictionary format
-    csv_data = convert_to_csv_dict(responses, questions)
-    return csv_data
+        # Convert the responses and questions to the str/dictionary format
+        return convert_to_csv_str(responses, questions) \
+            if output_type == "str" else convert_to_csv_dict(responses, questions)
 
 
 # Optional testing scripts, may be removed safely
 if __name__ == "__main__":
     import json
-    test = 0
+    test = None
 
     if test == 1:
         # Set test variables
@@ -374,6 +410,12 @@ if __name__ == "__main__":
     elif test == 2:
         # Test retrieval and print response dict
         formId = "1OK5awRN_pk1qpU3gFA92t8lo_lJCSmVudaWo4UbaWk0"
-        response = form_deployment_retrieve_form_tool(formId)
+        response = form_deployment_retrieve_form_tool(formId, output_type="dict")
         response_dump = json.dumps(response, sort_keys=True, indent=4)
         print(response_dump)
+
+    elif test == 3:
+        # Test retrieval and print response str
+        formId = "1OK5awRN_pk1qpU3gFA92t8lo_lJCSmVudaWo4UbaWk0"
+        response = form_deployment_retrieve_form_tool(formId)
+        print(response)

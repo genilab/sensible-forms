@@ -17,10 +17,9 @@ from app.domains.form_deployment.schemas import (
     FormDeploymentRequest,
     FormDeploymentResponse,
     FormDeploymentDeployResponse,
+    FormDeploymentRetrieveResponse,
 )
 from app.infrastructure.llm.factory import get_llm_client
-from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
-from app.domains.form_deployment.tools import form_deployment_check_csv_tool
 
 
 router = APIRouter(prefix="/form-deployment", tags=["Form Deployment"])
@@ -42,6 +41,15 @@ async def deploy_form(file: UploadFile = File(...)):
     # Get response data
     service = FormDeploymentService(get_llm_client())
     response = service.attempt_deploy(filename=file.filename, file_bytes=content)
+
+    # Return result
+    return response
+
+@router.get("/retrieve", response_model=FormDeploymentRetrieveResponse)
+async def retrieve_form(formId: str):
+    # Retrieve form data
+    service = FormDeploymentService(get_llm_client())
+    response = service.attempt_retrieve(formId=formId)
 
     # Return result
     return response

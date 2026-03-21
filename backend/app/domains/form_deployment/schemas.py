@@ -44,11 +44,15 @@ class FormDeploymentResponse(BaseModel):
 
 class FormDeploymentDeployResponse(BaseModel):
     """Deterministic deployment attempt result.
-
-    In production this would reflect a real Google Forms deployment.
-    In this example repo, it demonstrates validation + status reporting.
+    Reflects a real Google Forms deployment.
     """
 
     filename: str
     status: str
     feedback: str
+
+class FormDeploymentRetrieveResponse(BaseModel):
+    """Deterministic retrieval attempt result."""
+    formId: str
+    status: str
+    content: str
