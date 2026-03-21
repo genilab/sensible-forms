@@ -7,14 +7,11 @@ Responsible for:
 
 """
 
-# Example Code:
 from __future__ import annotations
 
-import csv
 import io
 import pandas as pd
 import numpy as np
-import json
 from pathlib import Path
 
 import os
@@ -211,7 +208,10 @@ def format_question(index, row) -> dict:
 
 # Get user credentials
 def get_credentials(
-    SCOPES: list[str] = ["https://www.googleapis.com/auth/forms.body"],
+    SCOPES: list[str] = [
+        "https://www.googleapis.com/auth/forms.body",
+        "https://www.googleapis.com/auth/forms.responses.readonly",
+        ],
     ) -> Credentials | ext.Credentials:
     """Use Google OAuth2 handlers to get user and client authentication."""
     # Set defaults
@@ -241,7 +241,7 @@ def get_credentials(
                 CLIENT_SECRETS_PATH,
                 SCOPES,
             )
-            credentials = flow.run_local_server()
+            credentials = flow.run_local_server(prompt="consent")
             
             # 4. Save user credentials for future use
             with open(TOKEN_JSON_PATH, 'w') as token:
@@ -297,16 +297,83 @@ def form_deployment_deploy_form_tool(
         return response
 
 
+# Convert response and question Data to CSV
+def convert_to_csv_dict(responses: list, questions: dict) -> dict[str, list]:
+    """Convert response and question Data to CSV."""
+    columns = ["responseId", "lastSubmittedTime"] + [question for question in questions.values()]
+    # Fix: Initialize out_dict with a new empty list for each key
+    out_dict = {key: [] for key in columns}
+
+    for response in responses: # Iterate through all responses
+        out_dict["responseId"].append(response.get("responseId")) # Add row responseId
+        out_dict["lastSubmittedTime"].append(response.get("lastSubmittedTime")) # Add row lastSubmittedTime
+
+        answers = response["answers"]
+        for question_id in questions.keys(): # Iterate through all response questions
+            try:
+                # Get the value and replace newline characters with a space
+                value = answers.get(question_id)["textAnswers"]["answers"][0]["value"]
+                out_dict[questions[question_id]].append(value.replace('\n', ' ')) # Add answer, with newlines replaced
+            except:
+                out_dict[questions[question_id]].append("No answer") # Add "No answer", if not found
+
+    return out_dict
+
+
+# Deploy a Form Using Google Forms API
+def form_deployment_retrieve_form_tool(
+    formId: str,
+    *,
+    encoding: str = "utf-8",
+) -> dict: # pyright: ignore[reportReturnType]
+    """Retrieve remote form data as a CSV file. 
+    Returns a response dictionary containing the CSV content."""
+    if not formId: 
+        raise ValueError("No Form ID detected. Enter a valid Form ID.")
+    responses = None
+    questions = None
+
+    # Get user credentials
+    creds = get_credentials()
+    with build("forms", "v1", credentials=creds) as form_service: 
+        # Get the responses of your specified form:
+        result = form_service.forms().responses().list(formId=formId).execute()
+        responses = result.get("responses")
+
+        # Get the questions of your specified form:
+        result = form_service.forms().get(formId=formId).execute()
+        questions = {}
+        for item in result["items"]:
+            question_id = item["questionItem"]["question"]["questionId"]
+            title = item.get("title", "")
+            questions[question_id] = title
+        
+    # Convert the responses and questions to the dictionary format
+    csv_data = convert_to_csv_dict(responses, questions)
+    return csv_data
+
+
 # Optional testing scripts, may be removed safely
-if __name__ == "__main__": 
-    # Set test variables
-    filename = "example_form"
-    with open("backend/app/tests/test_questions.csv", 'rb') as file:
-        file_bytes = file.read()
+if __name__ == "__main__":
+    import json
+    test = 0
+
+    if test == 1:
+        # Set test variables
+        filename = "example_form.csv"
+        with open("backend/app/tests/test_questions.csv", 'rb') as file:
+            file_bytes = file.read()
+        
+        # Test deployment and print response JSON
+        response = form_deployment_deploy_form_tool(filename, file_bytes)
+        response_dump = json.dumps(response, sort_keys=True, indent=4)
+        print(response_dump)
+        print(f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit")
+        print(f"Responder link: {response["responderUri"]}")
     
-    # Test deployment and print response JSON
-    response = form_deployment_deploy_form_tool(filename, file_bytes)
-    response_dump = json.dumps(response, sort_keys=True, indent=4)
-    print(response_dump)
-    print(f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit")
-    print(f"Responder link: {response["responderUri"]}")
+    elif test == 2:
+        # Test retrieval and print response dict
+        formId = "1OK5awRN_pk1qpU3gFA92t8lo_lJCSmVudaWo4UbaWk0"
+        response = form_deployment_retrieve_form_tool(formId)
+        response_dump = json.dumps(response, sort_keys=True, indent=4)
+        print(response_dump)
