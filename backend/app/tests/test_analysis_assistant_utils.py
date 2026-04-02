@@ -138,3 +138,22 @@ def test_resolve_question_id_is_conservative():
     # Ambiguous numeric match => unchanged
     ambiguous = {"Q1", "Question 1"}
     assert resolve_question_id(user_ref="1", known_ids=ambiguous) == "1"
+
+
+def test_resolve_question_id_additional_branches():
+    # Empty/whitespace input
+    assert resolve_question_id(user_ref="   ", known_ids={"Q1"}) == ""
+
+    # No digits and no exact match => unchanged
+    assert resolve_question_id(user_ref="alpha", known_ids={"Q1"}) == "alpha"
+
+    # Ambiguous numeric matches, but a single preferred short form exists.
+    # digit_matches: ["Item 1", "Q1"], preferred: ["Q1"]
+    known = {"Item 1", "Q1"}
+    assert resolve_question_id(user_ref="1", known_ids=known) == "Q1"
+
+    # Unique numeric digit match (no exact/CI match), e.g. "q3" -> "Question 3".
+    assert resolve_question_id(user_ref="q3", known_ids={"Question 3"}) == "Question 3"
+
+    # Digits present but no known id matches => unchanged.
+    assert resolve_question_id(user_ref="q9", known_ids={"Q1"}) == "q9"

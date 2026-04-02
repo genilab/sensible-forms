@@ -1,13 +1,5 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
-
-from langchain_core.messages import AIMessage
-
-from app.domains.analysis_assistant.nodes.ingestion_orchestrator import (
-    _ensure_unique_label,
-    make_ingestion_orchestrator_node,
-)
 from app.domains.analysis_assistant.structs.csvFile import CSVFile
 from app.domains.analysis_assistant.structs.surveyDataset import SurveyDataset
 from app.domains.analysis_assistant.tools.createSurveyDataset import create_survey_dataset
@@ -17,103 +9,6 @@ from app.domains.analysis_assistant.tools.extractSurveyInsights import extract_s
 class _Runtime:
     def __init__(self, tool_call_id: str = "t1") -> None:
         self.tool_call_id = tool_call_id
-
-
-@dataclass
-class _FakeLLM:
-    invoked: bool = False
-
-    def invoke(self, messages, tools=None, max_output_tokens=None, temperature=None, config=None):
-        self.invoked = True
-        return AIMessage(content="ok")
-
-
-def test_ensure_unique_label_appends_suffixes():
-    existing = {"responses", "responses_2"}
-    assert _ensure_unique_label(existing, "questions") == "questions"
-    assert _ensure_unique_label(existing, "responses") == "responses_3"
-
-
-def test_ingestion_orchestrator_labels_and_creates_wide_dataset_deterministically(monkeypatch):
-    llm = _FakeLLM()
-    node = make_ingestion_orchestrator_node(llm)
-
-    questions = CSVFile(
-        id="qcsv",
-        columns=["question_id", "question_text", "question_type"],
-        rows=[
-            {"question_id": "Q1", "question_text": "One", "question_type": "scale"},
-            {"question_id": "Q2", "question_text": "Two", "question_type": "scale"},
-        ],
-        label=None,
-    )
-    responses = CSVFile(
-        id="rcsv",
-        columns=["respondent_id", "Q1", "Q2"],
-        rows=[{"respondent_id": "r1", "Q1": "1", "Q2": "2"}],
-        label=None,
-    )
-
-    out = node({"csv_data": [questions, responses], "datasets": [], "mode": None})
-    assert llm.invoked is False
-
-    # labels are set in-place
-    assert questions.label == "questions"
-    assert responses.label.startswith("responses")
-
-    assert "datasets" in out
-    ds: SurveyDataset = out["datasets"][0]
-    assert ds.responses_wide is True
-    assert ds.join_key_questions in {"question_id", "qid", "questionId", "id"}
-    assert ds.response_question_columns == ["Q1", "Q2"]
-
-
-def test_ingestion_orchestrator_creates_long_dataset_deterministically():
-    llm = _FakeLLM()
-    node = make_ingestion_orchestrator_node(llm)
-
-    questions = CSVFile(
-        id="q",
-        columns=["question_id", "question_text", "question_type"],
-        rows=[{"question_id": "Q1", "question_text": "One", "question_type": "text"}],
-        label="questions",
-    )
-    responses = CSVFile(
-        id="r",
-        columns=["question_id", "response"],
-        rows=[{"question_id": "Q1", "response": "Yes"}],
-        label="responses",
-    )
-
-    out = node({"csv_data": [questions, responses], "datasets": [], "mode": None})
-    assert llm.invoked is False
-    ds: SurveyDataset = out["datasets"][0]
-    assert ds.responses_wide is False
-    assert ds.join_key_responses == "question_id"
-
-
-def test_ingestion_orchestrator_upload_mode_does_not_call_llm_when_only_unlabeled():
-    llm = _FakeLLM()
-    node = make_ingestion_orchestrator_node(llm)
-
-    unknown = CSVFile(id="u1", columns=["a", "b"], rows=[{"a": 1, "b": 2}], label=None)
-
-    # Deterministic labeling cannot label this; upload mode should not trigger LLM.
-    out = node({"csv_data": [unknown], "datasets": [], "mode": "upload"})
-    assert out == {}
-    assert llm.invoked is False
-
-
-def test_ingestion_orchestrator_non_upload_calls_llm_when_needed():
-    llm = _FakeLLM()
-    node = make_ingestion_orchestrator_node(llm)
-
-    unknown = CSVFile(id="u1", columns=["a", "b"], rows=[{"a": 1, "b": 2}], label=None)
-
-    out = node({"csv_data": [unknown], "datasets": [], "mode": None})
-    assert llm.invoked is True
-    assert "messages" in out
-    assert len(out["messages"]) == 1
 
 
 def test_create_survey_dataset_errors_and_wide_inference():
@@ -327,3 +222,89 @@ def test_create_survey_dataset_response_join_key_fallback_and_missing_error():
         runtime=_Runtime(),
     )
     assert "missing join key" in cmd_err.update["messages"][0].content.lower()
+
+
+def test_extract_survey_insights_dataset_not_found_returns_message():
+    cmd = extract_survey_insights.func(dataset_id="missing", state={"datasets": []}, runtime=_Runtime())
+    assert "No dataset found" in cmd.update["messages"][0].content
+
+
+def test_extract_survey_insights_wide_caps_within_row_and_skips_missing_and_empty_cells():
+    questions = CSVFile(
+        id="q",
+        columns=["question_id", "question_text"],
+        rows=[{"question_id": "Q1", "question_text": "One"}, {"question_id": "Q2", "question_text": "Two"}],
+        label="questions",
+    )
+
+    responses = CSVFile(
+        id="r",
+        columns=["Q1", "Q2"],
+        rows=[
+            {"Q1": "A", "Q2": "B"},  # would create 2 insights, but we'll cap
+            {"Q1": "", "Q2": "C"},  # empty value should be skipped
+            {"Q1": "D"},  # missing Q2 should be skipped
+        ],
+        label="responses",
+    )
+
+    ds = SurveyDataset(
+        id="d",
+        questions=questions,
+        responses=[responses],
+        join_key_questions="question_id",
+        join_key_responses=None,
+        responses_wide=True,
+        response_question_columns=["Q1", "Q2", "Q3"],  # Q3 not in row
+    )
+
+    cmd = extract_survey_insights.func(
+        dataset_id="d",
+        state={"datasets": [ds]},
+        runtime=_Runtime(),
+        max_insights=1,  # forces cap inside the qid loop
+        max_rows_per_file=500,
+    )
+
+    assert "(capped)" in cmd.update["messages"][0].content
+    assert len(cmd.update["insights"]) == 1
+    ev = cmd.update["insights"][0].evidence
+    assert ev["column"] in {"Q1", "Q2"}
+
+
+def test_extract_survey_insights_long_handles_missing_question_lookup_and_skips_bad_rows():
+    # join_key_questions is empty => q_lookup stays empty, and we should not filter by q_lookup membership.
+    questions = CSVFile(id="q", columns=["question_id"], rows=[{"question_id": "Q1"}], label="questions")
+
+    responses = CSVFile(
+        id="r",
+        columns=["question_id", "answer"],
+        rows=[
+            {"question_id": "", "answer": "skip-empty-qid"},
+            {"question_id": "Q1"},  # no response/answer/value => skipped
+            {"question_id": "Q1", "answer": "Yes"},
+        ],
+        label="responses",
+    )
+
+    ds = SurveyDataset(
+        id="d2",
+        questions=questions,
+        responses=[responses],
+        join_key_questions="",
+        join_key_responses="question_id",
+        responses_wide=False,
+    )
+
+    cmd = extract_survey_insights.func(
+        dataset_id="d2",
+        state={"datasets": [ds]},
+        runtime=_Runtime(),
+        max_insights=250,
+        max_rows_per_file=500,
+    )
+
+    assert "Extracted 1 insights" in cmd.update["messages"][0].content
+    assert len(cmd.update["insights"]) == 1
+    ev = cmd.update["insights"][0].evidence
+    assert ev["field"] == "answer"

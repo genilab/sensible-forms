@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from app.domains.analysis_assistant.structs.csvFile import CSVFile
 from app.domains.analysis_assistant.tools.describeCSVs import describe_csv
+from app.domains.analysis_assistant.tools.labelCSV import infer_label_for_csv, label_csv
 from app.domains.analysis_assistant.tools.listCSVs import list_csvs
 from app.domains.analysis_assistant.tools.sampleRows import sample_rows
 
@@ -62,3 +63,35 @@ def test_list_csvs_formats_each_csv_on_new_line():
     assert lines[1].startswith("c2:")
     assert "2 rows" in lines[1]
     assert "2 columns" in lines[1]
+
+
+def test_label_csv_sets_label_and_infer_label_heuristics():
+    q_csv = CSVFile(
+        id="q",
+        columns=["question_id", "question_text", "question_type"],
+        rows=[],
+        label=None,
+    )
+    assert infer_label_for_csv(q_csv) == "questions"
+
+    resp_csv = CSVFile(id="r", columns=["respondent_id", "Q1"], rows=[], label=None)
+    assert infer_label_for_csv(resp_csv) == "responses"
+
+    wide_resp = CSVFile(id="w", columns=["Q1", "Q2", "Q3"], rows=[], label=None)
+    assert infer_label_for_csv(wide_resp) == "responses"
+
+    state = {"csv_data": [q_csv]}
+    assert label_csv.func(csv_id="q", label="questions", state=state).startswith("CSV q labeled")
+    assert q_csv.label == "questions"
+
+    assert label_csv.func(csv_id="missing", label="x", state=state) == "CSV not found"
+
+
+def test_label_csv_infer_label_additional_branches():
+    # questionish intersection branch (>=3 question-ish columns)
+    qish = CSVFile(id="qish", columns=["question_id", "scale_min", "scale_max"], rows=[], label=None)
+    assert infer_label_for_csv(qish) == "questions"
+
+    # unknown shape => None
+    unknown = CSVFile(id="u", columns=["foo", "bar"], rows=[], label=None)
+    assert infer_label_for_csv(unknown) is None

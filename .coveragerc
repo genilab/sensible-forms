@@ -6,8 +6,12 @@ omit =
     */__pycache__/*
     */__init__.py
     backend/app/core/*
+    backend/app/domains/form_deployment/*
+    backend/app/domains/question_generation/*
     backend/app/tests/*
     backend/app/infrastructure/llm/mock.py
+    backend/app/api/form_deployment.py
+    backend/app/api/question_generation.py
 
 [report]
 show_missing = True

@@ -1,7 +1,13 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
+
+
+# Keep tests deterministic even when developers have real API keys in their
+# environment. Force mock LLM provider for the entire test session.
+os.environ["LLM_PROVIDER"] = "mock"
 
 
 def _ensure_backend_on_syspath() -> None:
