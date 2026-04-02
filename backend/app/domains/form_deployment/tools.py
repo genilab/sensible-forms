@@ -42,7 +42,7 @@ def form_deployment_check_csv_tool(
         errors.append("\nNo CSV file uploaded.\n")
 
     else:
-        df = data.replace('', np.nan).infer_objects(copy=False) # Normalize empty strings to np.nan for consistent handling and fix FutureWarning
+        df = data.replace('', np.nan).infer_objects() # Normalize empty strings to np.nan for consistent handling and fix FutureWarning
 
         # 2. Confirm columns exist in dataframe - critical
         columns = df.columns.tolist() if not df.empty else [] # Handle empty DataFrame
@@ -234,19 +234,22 @@ def get_credentials(
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
             # 2. Refresh the token if expired
-            credentials.refresh(Request())
+            try:
+                credentials.refresh(Request())
+                return credentials
+            except:
+                os.remove(TOKEN_JSON_PATH)
 
-        else:
-            # 3. Create a flow object and redirect the user to log in
-            flow = InstalledAppFlow.from_client_secrets_file(
-                CLIENT_SECRETS_PATH,
-                SCOPES,
-            )
-            credentials = flow.run_local_server(prompt="consent")
-            
-            # 4. Save user credentials for future use
-            with open(TOKEN_JSON_PATH, 'w') as token:
-                token.write(credentials.to_json())
+        # 3. Create a flow object and redirect the user to log in
+        flow = InstalledAppFlow.from_client_secrets_file(
+            CLIENT_SECRETS_PATH,
+            SCOPES,
+        )
+        credentials = flow.run_local_server(prompt="consent")
+        
+        # 4. Save user credentials for future use
+        with open(TOKEN_JSON_PATH, 'w') as token:
+            token.write(credentials.to_json())
 
     return credentials
 

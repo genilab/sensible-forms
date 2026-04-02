@@ -160,7 +160,7 @@ export default function FormDeployment() {
 				</div>
 			) : null}
 
-			<div style={{ marginTop: 24, borderTop: '1px solid #eee', pt: 12}}>
+			<div style={{ marginTop: 12}}>
 				<div className="small" style={{ marginBottom: 6 }}>
 					Retrieve Form Responses (via Form ID):
 				</div>
