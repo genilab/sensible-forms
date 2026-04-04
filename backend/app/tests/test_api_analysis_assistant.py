@@ -34,3 +34,26 @@ def test_analysis_upload_accepts_missing_session_id_and_generates_one():
     assert body["insights"]
     # Should always return a valid UUID session_id.
     UUID(body["session_id"])
+
+
+def test_analysis_upload_acknowledges_even_with_prior_chat_ai_message():
+    # Seed the checkpoint thread with a prior chatbot response (non-upload).
+    # This mimics the real flow: user chats first, then uploads a CSV.
+    session_id = "11111111-1111-1111-1111-111111111111"
+    r1 = client.post(
+        "/analysis/",
+        json={"data_summary": "N=1", "session_id": session_id},
+    )
+    assert r1.status_code == 200
+
+    files = {"file": ("one.csv", b"a,b\n1,2\n", "text/csv")}
+    r2 = client.post(
+        "/analysis/upload",
+        files=files,
+        data={"session_id": session_id},
+    )
+    assert r2.status_code == 200
+    body = r2.json()
+    assert isinstance(body.get("insights"), str)
+    # The upload branch should produce a deterministic acknowledgement.
+    assert "uploaded" in body["insights"].lower()

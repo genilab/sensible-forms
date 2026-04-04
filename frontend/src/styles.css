@@ -208,6 +208,74 @@ body {
   background: #fff;
 }
 
+/* Markdown rendering inside chat bubbles */
+.msg .md {
+  /* Override the chat bubble's pre-wrap for rendered Markdown HTML. */
+  white-space: normal;
+}
+
+.msg .md > :first-child { margin-top: 0; }
+.msg .md > :last-child { margin-bottom: 0; }
+
+.msg .md p {
+  margin: 0;
+}
+
+.msg .md p + p {
+  margin-top: 8px;
+}
+
+.msg .md ul,
+.msg .md ol {
+  margin: 6px 0 0 18px;
+  padding: 0;
+}
+
+.msg .md li {
+  margin: 2px 0;
+}
+
+.msg .md a {
+  color: inherit;
+}
+
+.msg .md code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.95em;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 1px 6px;
+}
+
+.msg .md pre {
+  margin: 8px 0 0 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  overflow-x: auto;
+}
+
+.msg .md pre code {
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+
+.msg .md table {
+  margin-top: 8px;
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.msg .md th,
+.msg .md td {
+  border: 1px solid var(--border);
+  padding: 6px 8px;
+  vertical-align: top;
+}
+
 /* Inputs + actions */
 .row {
   display: flex;

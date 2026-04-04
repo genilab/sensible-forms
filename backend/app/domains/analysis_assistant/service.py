@@ -62,15 +62,7 @@ class AnalysisAssistantService:
         if request.messages:
             payload["messages"] = to_langchain_messages([m.model_dump() for m in request.messages])
         elif data_summary:
-            payload["messages"] = [
-                HumanMessage(
-                    content=(
-                        "Given the following survey data summary, return 3-5 concise insights as bullet points. "
-                        "Be specific and avoid generic advice.\n\n"
-                        f"SURVEY DATA SUMMARY:\n{data_summary}"
-                    )
-                )
-            ]
+            payload["messages"] = [HumanMessage(content=(data_summary))]
             payload["last_user_prompt"] = data_summary
 
         if request.csv_text:

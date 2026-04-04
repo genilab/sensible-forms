@@ -33,30 +33,20 @@ def upload_ack(state: State):
         last_human_msg.content if last_human_msg is not None else state.get("last_user_prompt")
     )
 
-    # If an upstream node already produced a plain AI message, keep it as the
-    # final message and only clear upload mode.
+    # If we've already acknowledged *this exact upload id* (e.g., due to retries),
+    # don't append another acknowledgement.
     #
-    # Important nuance with checkpointing: `messages` includes prior runs. We only want
-    # to suppress the ack when the most recent AI message is a non-upload response
-    # (e.g., a clarifying question), or when we've already acknowledged the current
-    # upload id.
-    if messages:
+    # Important nuance with checkpointing: `messages` contains prior runs. We must NOT
+    # suppress acknowledgements just because the last AI message is some earlier chat
+    # response (which would cause the API to re-surface that old message).
+    last_id = state.get("last_uploaded_csv_id")
+    if last_id and messages:
         last_message = messages[-1]
         if isinstance(last_message, AIMessage) and not getattr(last_message, "tool_calls", None):
             content = getattr(last_message, "content", None)
-            if isinstance(content, str) and content.strip():
-                content_lc = content.lower()
-                last_id = state.get("last_uploaded_csv_id")
+            if isinstance(content, str) and ("uploaded" in content.lower()) and (last_id in content):
+                return {"mode": None, "last_user_prompt": last_user_prompt}
 
-                # If the last AI message isn't an upload acknowledgement, keep it.
-                if "uploaded" not in content_lc:
-                    return {"mode": None, "last_user_prompt": last_user_prompt}
-
-                # If it already references the current upload id, don't add another ack.
-                if last_id and last_id in content:
-                    return {"mode": None, "last_user_prompt": last_user_prompt}
-
-    last_id = state.get("last_uploaded_csv_id")
     last_csv = next((c for c in csv_data if c.id == last_id), None)
     if last_csv is None and csv_data:
         last_csv = csv_data[-1]

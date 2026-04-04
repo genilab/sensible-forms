@@ -13,6 +13,8 @@
 
 // Example Code:
 import { useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { analyzeData, uploadAnalysisCsv } from "../services/analysisAssistant.js";
 import { getOrCreateSessionId } from "../services/session.js";
@@ -22,7 +24,7 @@ export default function AnalysisAssistant() {
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
-			text: "Paste a short dataset summary and I’ll return 3–5 insights. You can also upload CSV(s) for ingestion."
+			text: "Upload a question and response CSV to create a survey dataset for analysis assistance. Or, simply type a summary of your dataset and I’ll provide insights or suggestions for further analysis."
 		}
 	]);
 	const [input, setInput] = useState("");
@@ -81,7 +83,15 @@ export default function AnalysisAssistant() {
 
 			<div className="chat" aria-live="polite">
 				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>{m.text}</div>
+					<div key={idx} className={`msg ${m.role}`}>
+						{m.role === "bot" ? (
+							<div className="md">
+								<ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+							</div>
+						) : (
+							m.text
+						)}
+					</div>
 				))}
 			</div>
 
