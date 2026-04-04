@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite brand of pencil?,textQuestion,,,,,,True
+Q2,"On a scale of 1 to 5, with 1 being ""never"" and 5 being ""very often,"" how often do you use pencils?",scaleQuestion,,1.0,5.0,Never,Very Often,False
+Q3,What do you primarily use pencils for?,textQuestion,,,,,,False
+Q4,Which of the following pencil lead grades do you prefer?,choiceQuestion,HB; 2B; 2H; Other,,,,,False
+Q5,How would you rate the importance of the following features when choosing a pencil:,ratingQuestion,,,,,,False
+Q6,Have you noticed a change in pencil quality between different brands?,choiceQuestion,Yes; No,,,,,False
+Q7,"If yes, can you elaborate on the differences you've noticed?",textQuestion,,,,,,False
+Q8,What is the typical price you would pay for a pencil?,textQuestion,,,,,,False
+Q9,Do you have a preference for wooden or mechanical pencils?,choiceQuestion,Wooden; Mechanical; No Preference,,,,,False
+Q10,How long does a pencil typically last for you?,textQuestion,,,,,,False

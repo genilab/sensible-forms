@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite color?,choiceQuestion,Red; Blue; Green; Yellow; Purple; Other,,,,,False
+Q2,What is your favorite type of cuisine?,choiceQuestion,Italian; Mexican; Chinese; American; Indian; Other,,,,,False
+Q3,How often do you purchase new clothing items?,scaleQuestion,,1.0,5.0,Rarely,Very Frequently,False
+Q4,What is your preferred style of music?,choiceQuestion,Pop; Rock; Country; Hip Hop; Electronic; Classical; Other,,,,,False
+Q5,How important is brand name when purchasing clothing?,scaleQuestion,,1.0,5.0,Not Important,Very Important,False
+Q6,What is your favorite season of the year?,choiceQuestion,Spring; Summer; Autumn; Winter,,,,,False
+Q7,How often do you eat fast food?,scaleQuestion,,1.0,5.0,Never,Very Often,False
+Q8,What type of movie do you prefer?,choiceQuestion,Action; Comedy; Drama; Horror; Sci-Fi; Romance; Other,,,,,False
+Q9,How much time do you spend on social media per day?,scaleQuestion,,1.0,5.0,Less than 1 hour,More than 5 hours,False
+Q10,How important is sustainability when buying products?,scaleQuestion,,1.0,5.0,Not Important,Very Important,False

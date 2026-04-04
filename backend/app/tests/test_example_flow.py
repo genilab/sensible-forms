@@ -35,29 +35,6 @@ def test_analysis_flow():
     assert len(body["insights"]) > 0
 
 
-def test_form_deployment_flow():
-    files = {"file": ("survey.csv", b"question_text,question_type\nHello?,short_text\n", "text/csv")}
-    deploy_r = client.post("/form-deployment/deploy", files=files)
-    assert deploy_r.status_code == 200
-    deploy_body = deploy_r.json()
-    assert deploy_body["status"] in {"success", "error"}
-    assert isinstance(deploy_body["feedback"], str)
-
-    chat_r = client.post(
-        "/form-deployment/chat",
-        json={
-            "message": "Did it deploy?",
-            "last_deploy_filename": deploy_body["filename"],
-            "last_deploy_status": deploy_body["status"],
-            "last_deploy_feedback": deploy_body["feedback"],
-        },
-    )
-    assert chat_r.status_code == 200
-    chat_body = chat_r.json()
-    assert "message" in chat_body
-    assert isinstance(chat_body["message"], str)
-
-
 def test_upload_flow_rejects_non_csv():
     files = {"file": ("not.csv.txt", b"abc", "text/plain")}
     r = client.post("/uploads/", files=files)

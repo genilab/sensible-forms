@@ -90,8 +90,16 @@ export default function FormDeployment() {
 		setError("")
 		setIsDownloading(true);
 		try {
-			const response = await getFormResponses(formIdInput);
-			const csvContent = response.content;
+			const res = await getFormResponses(formIdInput);
+			setMessages((prev) => [
+				...prev,
+				{
+					role: "bot",
+					text: `Deterministic retrieve: ${res.status}\n${res.feedback}`
+				}
+			]);
+			if (res.status.trim() == "error") return;
+			const csvContent = res.content;
 			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");

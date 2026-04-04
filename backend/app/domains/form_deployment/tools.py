@@ -3,8 +3,9 @@ File Deployment Middleware / Tools.
 
 Responsible for:
 - Validating uploaded file parameters
+- Validating user credentials
 - Performing form deployment functionality
-
+- Performing form retrieval functionality
 """
 
 from __future__ import annotations
@@ -112,7 +113,34 @@ def form_deployment_check_csv_tool(
                 The current invalid 'scale_max' values are: {", ".join(map(str, invalid_values))}
                 """)
 
-            # 7. Check for bool in 'required'
+            # 7. Check for scale_min & scale_max valid range
+            # Check if 'scale_min' is in valid range [0-1]
+            if not numeric_scale_min.empty and invalid_scale_min_rows.empty:
+                invalid_range_min_rows = df[(numeric_scale_min.notna()) & ((numeric_scale_min < 0) | (numeric_scale_min > 1))]
+                if not invalid_range_min_rows.empty:
+                    invalid_rows_idx = invalid_range_min_rows.index.tolist()
+                    invalid_values = invalid_range_min_rows['scale_min'].tolist()
+                    errors.append(f"""
+                    Invalid scale options detected in 'scale_min'.
+                    Valid scale options must be between 0 and 1.
+                    The current invalid rows are: {", ".join(map(str, invalid_rows_idx))}
+                    The current invalid 'scale_min' values are: {", ".join(map(str, invalid_values))}
+                    """)
+
+            # Check if 'scale_max' is in valid range [2-10]
+            if not numeric_scale_max.empty and invalid_scale_max_rows.empty:
+                invalid_range_max_rows = df[(numeric_scale_max.notna()) & ((numeric_scale_max < 2) | (numeric_scale_max > 10))]
+                if not invalid_range_max_rows.empty:
+                    invalid_rows_idx = invalid_range_max_rows.index.tolist()
+                    invalid_values = invalid_range_max_rows['scale_max'].tolist()
+                    errors.append(f"""
+                    Invalid scale options detected in 'scale_max'.
+                    Valid scale options must be between 2 and 10.
+                    The current invalid rows are: {", ".join(map(str, invalid_rows_idx))}
+                    The current invalid 'scale_max' values are: {", ".join(map(str, invalid_values))}
+                    """)
+
+            # 8. Check for bool in 'required'
             valid_bool_values = ['true', 'false', '1', '0', '1.0', '0.0']
             invalid_required_rows = df[df['required'].notna() & ~df['required'].astype(str).str.lower().isin(valid_bool_values)]
             if not invalid_required_rows.empty:
@@ -125,7 +153,7 @@ def form_deployment_check_csv_tool(
                 The current invalid 'required' values are: {", ".join(map(str, invalid_values))}
                 """)
 
-            # 8. Check for empty rows
+            # 9. Check for empty rows
             empty_rows = df[df.isnull().all(axis=1)]
             if not empty_rows.empty:
                 empty_rows_idx = empty_rows.index.tolist()
@@ -222,6 +250,10 @@ def get_credentials(
     CLIENT_SECRETS_PATH = backend_dir / "client_secrets.json"
     TOKEN_JSON_PATH = backend_dir / "token.json"
 
+    # Ensure client_secrets.json exists
+    if not os.path.exists(CLIENT_SECRETS_PATH): 
+        raise ValueError("No API access route detected.")
+
     # 1. Load credentials from file if they exist, and refresh if needed
     if os.path.exists(TOKEN_JSON_PATH):
         with open(TOKEN_JSON_PATH, 'rb') as token:
@@ -275,7 +307,11 @@ def form_deployment_deploy_form_tool(
     questions = [format_question(index, row) for index, row in data.iterrows()]
 
     # Get user credentials
-    creds = get_credentials()
+    try: 
+        creds = get_credentials()
+    except ValueError as e: 
+        raise ValueError(e)
+
     with build("forms", "v1", credentials=creds) as form_service: 
         # Request body for creating a form
         NEW_FORM = {
@@ -296,7 +332,23 @@ def form_deployment_deploy_form_tool(
                 .execute()
             )
 
-        # Return the response to show the questions have been added
+        # Set publish settings
+        set_publish_settings_request = {
+            "publishSettings": {
+                "publishState": {
+                    "isPublished": True,
+                    "isAcceptingResponses": True
+                }
+            },
+        }
+        publish_setting = (
+            form_service
+            .forms()
+            .setPublishSettings(formId=result["formId"], body=set_publish_settings_request)
+            .execute()
+        )
+        
+        # Get response to show the questions have been added
         response = form_service.forms().get(formId=result["formId"]).execute()
         return response
 
@@ -318,7 +370,7 @@ def convert_to_csv_dict(responses: list, questions: dict) -> dict[str, list]:
             try:
                 # Get the value and replace newline characters with a space
                 value = answers.get(question_id)["textAnswers"]["answers"][0]["value"]
-                out_dict[questions[question_id]].append(value.replace('\n', ' ')) # Add answer, with newlines replaced
+                out_dict[questions[question_id]].append(value.replace('\n', ' ')) # Add answer (no newlines)
             except:
                 out_dict[questions[question_id]].append("No answer") # Add "No answer", if not found
 
@@ -374,7 +426,11 @@ def form_deployment_retrieve_form_tool(
         raise ValueError("No Form ID detected. Enter a valid Form ID.")
 
     # Get user credentials
-    creds = get_credentials()
+    try: 
+        creds = get_credentials()
+    except ValueError as e: 
+        raise ValueError(e)
+
     with build("forms", "v1", credentials=creds) as form_service: 
         # Get the responses of your specified form:
         resp_data = form_service.forms().responses().list(formId=formId).execute()
@@ -390,35 +446,3 @@ def form_deployment_retrieve_form_tool(
         # Convert the responses and questions to the str/dictionary format
         return convert_to_csv_str(responses, questions) \
             if output_type == "str" else convert_to_csv_dict(responses, questions)
-
-
-# Optional testing scripts, may be removed safely
-if __name__ == "__main__":
-    import json
-    test = None
-
-    if test == 1:
-        # Set test variables
-        filename = "example_form.csv"
-        with open("backend/app/tests/test_questions.csv", 'rb') as file:
-            file_bytes = file.read()
-        
-        # Test deployment and print response JSON
-        response = form_deployment_deploy_form_tool(filename, file_bytes)
-        response_dump = json.dumps(response, sort_keys=True, indent=4)
-        print(response_dump)
-        print(f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit")
-        print(f"Responder link: {response["responderUri"]}")
-    
-    elif test == 2:
-        # Test retrieval and print response dict
-        formId = "1OK5awRN_pk1qpU3gFA92t8lo_lJCSmVudaWo4UbaWk0"
-        response = form_deployment_retrieve_form_tool(formId, output_type="dict")
-        response_dump = json.dumps(response, sort_keys=True, indent=4)
-        print(response_dump)
-
-    elif test == 3:
-        # Test retrieval and print response str
-        formId = "1OK5awRN_pk1qpU3gFA92t8lo_lJCSmVudaWo4UbaWk0"
-        response = form_deployment_retrieve_form_tool(formId)
-        print(response)

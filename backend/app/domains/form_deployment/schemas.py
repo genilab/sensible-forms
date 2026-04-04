@@ -55,4 +55,5 @@ class FormDeploymentRetrieveResponse(BaseModel):
     """Deterministic retrieval attempt result."""
     formId: str
     status: str
-    content: str
+    feedback: str
+    content: Optional[str] = None

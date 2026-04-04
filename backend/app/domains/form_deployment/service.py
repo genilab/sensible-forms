@@ -118,7 +118,7 @@ class FormDeploymentService:
         try:
             response = form_deployment_deploy_form_tool(filename, file_bytes)
             ### In the near future, some measure to store formId data for the user should be added
-        except ValueError as e:
+        except Exception as e:
             return FormDeploymentDeployResponse(
                 filename=filename,
                 status="error",
@@ -146,12 +146,13 @@ class FormDeploymentService:
             return FormDeploymentRetrieveResponse(
                 formId=formId,
                 status="error",
-                content=str(e),
+                feedback=str(e),
             )
 
         # Successfull retrieval return
         return FormDeploymentRetrieveResponse(
             formId=formId,
             status="success",
+            feedback="CSV Downloading...",
             content=csvContent,
         )

@@ -38,18 +38,12 @@ async def deploy_form(file: UploadFile = File(...)):
     content = await file.read()
     assert isinstance(file.filename, str)
     
-    # Get response data
+    # Get and return response data
     service = FormDeploymentService(get_llm_client())
-    response = service.attempt_deploy(filename=file.filename, file_bytes=content)
-
-    # Return result
-    return response
+    return service.attempt_deploy(filename=file.filename, file_bytes=content)
 
 @router.get("/retrieve", response_model=FormDeploymentRetrieveResponse)
 async def retrieve_form(formId: str):
-    # Retrieve form data
+    # Get and return form data
     service = FormDeploymentService(get_llm_client())
-    response = service.attempt_retrieve(formId=formId)
-
-    # Return result
-    return response
+    return service.attempt_retrieve(formId=formId)
