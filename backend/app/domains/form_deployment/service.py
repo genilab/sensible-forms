@@ -39,15 +39,14 @@ class FormDeploymentService:
 
     def chat(self, request: FormDeploymentRequest) -> FormDeploymentResponse:
         msg = (request.message or "").strip()
+        session_id = request.session_id or uuid4()
+        thread_id = f"form_deployment:{session_id}"
+
         if not msg:
-            session_id = request.session_id or uuid4()
             return FormDeploymentResponse(
                 message="Ask a question (e.g., 'How do I deploy a CSV?' or 'What do I fix?').",
                 session_id=session_id,
             )
-
-        session_id = request.session_id or uuid4()
-        thread_id = f"form_deployment:{session_id}"
 
         try:
             result = self._graph.invoke(
