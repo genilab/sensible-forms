@@ -1,10 +1,10 @@
 from typing import Annotated, Any, List, Optional
+import uuid
 
 from langchain.tools import tool
 from langchain_core.messages import ToolMessage
 from langgraph.prebuilt import InjectedState
 from langgraph.types import Command
-import uuid
 
 from app.domains.analysis_assistant.structs.surveyDataset import SurveyDataset
 from app.domains.analysis_assistant.tools.utils.dataset_inference import (
@@ -27,16 +27,36 @@ def create_survey_dataset(
     state: Annotated[dict, InjectedState] = None,
     runtime: Any = None,
 ) -> Command:
-    """
-    Create a SurveyDataset by joining one questions CSV with one or more response CSVs.
+    """Create a SurveyDataset by linking a questions CSV to one or more response CSVs.
 
-    This tool establishes explicit relationships between survey questions and responses
-    using specified join keys, enabling downstream insight extraction and analysis.
+    This tool does *not* execute a join. Instead, it creates a ``SurveyDataset`` object
+    that declares how questions and responses relate (join keys, wide vs long format).
+    Downstream tools can then interpret responses consistently.
 
-    Use this tool when multiple CSV files belong to the same survey and need to be
-    analyzed together.
+    Expectations:
+    - CSVs must already exist in ``state["csv_data"]``.
+    - The questions CSV contains a question identifier column (explicit or inferred).
+
+    Args:
+        questions_csv_id: CSV id containing question metadata.
+        response_csv_ids: One or more CSV ids containing responses.
+        join_key_questions: Column in the questions CSV that identifies questions.
+            If invalid, the tool attempts to infer a suitable question id column.
+        join_key_responses: For long/tidy response CSVs, the column that identifies the
+            question id in each response row. If omitted, the tool attempts to infer.
+        responses_wide: If true, treat responses as wide format (question ids are columns).
+        response_question_columns: For wide responses, optional explicit list of question
+            columns to treat as responses.
+        dataset_id: Optional explicit dataset id. If omitted, a random id is generated.
+        state: LangGraph-injected state dict.
+        runtime: Tool runtime injected by LangGraph ToolNode.
+
+    Returns:
+        A ``Command`` update that adds a new dataset in ``state["datasets"]`` and a
+        user-visible ``ToolMessage`` describing the result.
     """
-    
+
+    # ---- 1) Validate tool runtime + initialize state ----
     state = state or {}
 
     # ToolRuntime is always injected by ToolNode, but keep a defensive fallback
@@ -44,8 +64,10 @@ def create_survey_dataset(
     if runtime is None:  # pragma: no cover
         raise ValueError("ToolRuntime was not injected.")
 
+    # ---- 2) Index available CSVs by id for fast lookups ----
     csvs = {c.id: c for c in state.get("csv_data", [])}
 
+    # ---- 3) Validate required inputs early (return ToolMessage on failure) ----
     if not questions_csv_id:
         return Command(
             update={
@@ -82,10 +104,10 @@ def create_survey_dataset(
             }
         )
 
+    # ---- 4) Resolve CSV objects from ids ----
     questions_csv = csvs[questions_csv_id]
 
-    # Detect question id column and wide-format response columns via shared util
-    # Build responses list first so detection can use it
+    # Build the responses list first so downstream inference can inspect it.
     responses = []
     for rid in response_csv_ids:
         if rid not in csvs:
@@ -101,10 +123,11 @@ def create_survey_dataset(
             )
         responses.append(csvs[rid])
 
-    qid_col = find_question_id_column(questions_csv.columns)
+    # ---- 5) Infer helpful defaults (question id column + likely wide-format response columns) ----
+    qid_col = find_question_id_column(questions_csv.columns or [])
     detected_response_cols = detect_wide_response_columns(questions_csv, responses)
 
-    # Validate/adjust join_key_questions; fallback to detected qid_col
+    # ---- 6) Validate/adjust join_key_questions (fallback to inferred question id column) ----
     if join_key_questions not in (questions_csv.columns or []):
         if qid_col:
             join_key_questions = qid_col
@@ -121,10 +144,11 @@ def create_survey_dataset(
                 }
             )
 
-    # responses already constructed above
-
+    # ---- 7) Interpret response format: wide vs long/tidy ----
+    # Wide: each row is a respondent and question ids are columns.
+    # Long: one row per (respondent, question) and a join key identifies the question.
     if responses_wide:
-        # Wide-format: use provided or detected response question columns
+        # ---- 7a) Wide-format: validate/choose which response columns correspond to question ids ----
         cols = response_question_columns or detected_response_cols or []
         if not cols:
             # Try to infer wide-format; if still missing, do not raise — return unchanged
@@ -146,7 +170,7 @@ def create_survey_dataset(
                 pass
         response_question_columns = cols
     else:
-        # Long/tidy format: ensure a join key exists in responses; if not provided, infer
+        # ---- 7b) Long/tidy format: ensure a join key exists in responses; infer if omitted ----
         if not join_key_responses:
             # If responses also have the questions key, reuse it
             if all(join_key_questions in (r.columns or []) for r in responses):
@@ -168,7 +192,7 @@ def create_survey_dataset(
                     }
                 )
         else:
-            # Validate presence; if missing, try fallback to qid_col
+            # Validate presence; if missing, try fallback to inferred question id column.
             for r in responses:
                 if join_key_responses not in (r.columns or []):
                     if qid_col and qid_col in (r.columns or []):
@@ -187,6 +211,7 @@ def create_survey_dataset(
                             }
                         )
 
+    # ---- 8) Materialize the SurveyDataset (relationships only; no joins executed here) ----
     dataset = SurveyDataset(
         id=dataset_id or f"dataset_{uuid.uuid4()}",
         questions=questions_csv,
@@ -197,6 +222,7 @@ def create_survey_dataset(
         response_question_columns=response_question_columns,
     )
 
+    # ---- 9) Return dataset update + a user-visible ToolMessage ----
     return Command(
         update={
             "datasets": [dataset],

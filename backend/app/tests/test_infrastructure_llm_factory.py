@@ -56,6 +56,7 @@ def _install_fake_module(monkeypatch: pytest.MonkeyPatch, module_name: str, **at
     monkeypatch.setitem(sys.modules, module_name, mod)
 
 
+# Factory tests share an LRU-cached getter; clear it between tests for isolation.
 @pytest.fixture(autouse=True)
 def _reset_llm_factory_cache():
     # `get_llm_client` is LRU-cached; isolate tests.
@@ -64,6 +65,7 @@ def _reset_llm_factory_cache():
     get_llm_client.cache_clear()
 
 
+# LLM factory: mock provider returns MockLLMClient.
 def test_provider_mock_returns_mock(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(settings, "LLM_PROVIDER", "mock")
 
@@ -71,6 +73,7 @@ def test_provider_mock_returns_mock(monkeypatch: pytest.MonkeyPatch):
     assert isinstance(client, MockLLMClient)
 
 
+# LLM factory: openai provider requires OPENAI_API_KEY.
 def test_openai_missing_key_raises(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(settings, "LLM_PROVIDER", "openai")
     monkeypatch.setattr(settings, "OPENAI_API_KEY", None)
@@ -79,6 +82,7 @@ def test_openai_missing_key_raises(monkeypatch: pytest.MonkeyPatch):
         get_llm_client()
 
 
+# LLM factory: openai provider uses the OpenAI-compatible client implementation when available.
 def test_openai_success_uses_openai_compat(monkeypatch: pytest.MonkeyPatch):
     class FakeOpenAICompatibleClient(_BaseFakeClient):
         pass
@@ -96,6 +100,7 @@ def test_openai_success_uses_openai_compat(monkeypatch: pytest.MonkeyPatch):
     assert isinstance(client, FakeOpenAICompatibleClient)
 
 
+# LLM factory: auto provider falls back to Gemini when OpenAI client init fails.
 def test_auto_openai_init_failure_falls_back_to_gemini(monkeypatch: pytest.MonkeyPatch):
     class FailingOpenAIClient(_BaseFakeClient):
         def __init__(self):
@@ -123,6 +128,7 @@ def test_auto_openai_init_failure_falls_back_to_gemini(monkeypatch: pytest.Monke
     assert isinstance(client, FakeGeminiClient)
 
 
+# LLM factory: auto provider falls back to Mock when both OpenAI and Gemini fail.
 def test_auto_openai_and_gemini_fail_falls_back_to_mock(monkeypatch: pytest.MonkeyPatch):
     class FailingOpenAIClient(_BaseFakeClient):
         def __init__(self):
@@ -151,6 +157,7 @@ def test_auto_openai_and_gemini_fail_falls_back_to_mock(monkeypatch: pytest.Monk
     assert isinstance(client, MockLLMClient)
 
 
+# LLM factory: gemini provider requires GEMINI_API_KEY.
 def test_gemini_missing_key_raises(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(settings, "LLM_PROVIDER", "gemini")
     monkeypatch.setattr(settings, "GEMINI_API_KEY", None)
@@ -159,6 +166,7 @@ def test_gemini_missing_key_raises(monkeypatch: pytest.MonkeyPatch):
         get_llm_client()
 
 
+# LLM factory: gemini provider uses GeminiClient when available.
 def test_gemini_success_uses_gemini_client(monkeypatch: pytest.MonkeyPatch):
     class FakeGeminiClient(_BaseFakeClient):
         pass
@@ -172,6 +180,7 @@ def test_gemini_success_uses_gemini_client(monkeypatch: pytest.MonkeyPatch):
     assert isinstance(client, FakeGeminiClient)
 
 
+# LLM factory: auto provider falls back to Mock when Gemini init fails and OpenAI key is absent.
 def test_auto_gemini_init_failure_falls_back_to_mock(monkeypatch: pytest.MonkeyPatch):
     class FailingGeminiClient(_BaseFakeClient):
         def __init__(self):
@@ -187,6 +196,7 @@ def test_auto_gemini_init_failure_falls_back_to_mock(monkeypatch: pytest.MonkeyP
     assert isinstance(client, MockLLMClient)
 
 
+# LLM factory: rejects unknown provider values.
 def test_unknown_provider_raises(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(settings, "LLM_PROVIDER", "definitely-not-real")
     monkeypatch.setattr(settings, "OPENAI_API_KEY", None)
@@ -196,6 +206,7 @@ def test_unknown_provider_raises(monkeypatch: pytest.MonkeyPatch):
         get_llm_client()
 
 
+# LLMClient.invoke_llm (factory path): forwards optional params and kwargs through the wrapper.
 def test_client_invoke_llm_forwards_kwargs_and_optional_params():
     client = _CapturingClient()
 
@@ -217,6 +228,7 @@ def test_client_invoke_llm_forwards_kwargs_and_optional_params():
     assert client.last["kwargs"]["extra"] == "value"
 
 
+# LLMClient.invoke: base method body raises NotImplementedError (explicit contract).
 def test_client_base_invoke_raises_not_implemented_error():
     with pytest.raises(NotImplementedError):
         LLMClient.invoke(object(), "hi")

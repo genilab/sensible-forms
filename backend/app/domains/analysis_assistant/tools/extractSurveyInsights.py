@@ -1,3 +1,4 @@
+import uuid
 from typing import Annotated, Any
 
 from langchain.tools import tool
@@ -7,7 +8,13 @@ from langgraph.types import Command
 
 from app.domains.analysis_assistant.structs.insights import Insight
 from app.domains.analysis_assistant.tools.utils.confidence import score_response_summary
-import uuid
+
+
+# Output safety caps and defaults.
+_MIN_LIMIT = 1
+_MAX_LIMIT = 5000
+_DEFAULT_MAX_INSIGHTS = 250
+_DEFAULT_MAX_ROWS_PER_FILE = 500
 
 # Interprets joined survey data to extract insights.
 # Performs deterministic joins internally, produces Insight objects, and attaches evidence and confidence score.
@@ -21,14 +28,32 @@ def extract_survey_insights(
     max_insights: int = 250,
     max_rows_per_file: int = 500,
 ) -> Command:
-    """
-    Extract analytical insights from a SurveyDataset.
+    """Extract atomic response-summary insights from a SurveyDataset.
 
-    This tool performs deterministic joins between question and response data,
-    identifies trends and patterns, and returns structured insights with
-    confidence scores and evidence references.
+    This tool deterministically walks response rows and produces one ``Insight`` per
+    observed non-empty response value (subject to caps). It supports both:
+    - wide responses (question ids as columns)
+    - long/tidy responses (a join key identifies the question id per row)
+
+    Caps:
+    - ``max_insights`` limits total insights returned
+    - ``max_rows_per_file`` limits how many rows are scanned per response CSV
+    Both are clamped to a safe range to avoid runaway output.
+
+    Args:
+        dataset_id: The id of a ``SurveyDataset`` present in ``state["datasets"]``.
+        state: LangGraph-injected state dict.
+        runtime: Tool runtime (used for ToolMessage tool_call_id).
+        max_insights: Maximum number of insights to emit (default 250).
+        max_rows_per_file: Maximum number of rows per response CSV to scan (default 500).
+
+    Returns:
+        A ``Command`` update containing:
+        - ``insights``: list of ``Insight`` objects
+        - ``messages``: a single ``ToolMessage`` summarizing extracted count (and whether capped)
     """
-    
+
+    # ---- 1) Locate the dataset in state (graceful failure, no exceptions) ----
     datasets = state.get("datasets", [])
     dataset = next((d for d in datasets if d.id == dataset_id), None)
     if dataset is None:
@@ -44,11 +69,15 @@ def extract_survey_insights(
             }
         )
 
-    max_insights = max(1, min(int(max_insights or 250), 5000))
-    max_rows_per_file = max(1, min(int(max_rows_per_file or 500), 5000))
+    # ---- 2) Normalize caps to safe ranges to avoid runaway tool output ----
+    max_insights = max(_MIN_LIMIT, min(int(max_insights or _DEFAULT_MAX_INSIGHTS), _MAX_LIMIT))
+    max_rows_per_file = max(_MIN_LIMIT, min(int(max_rows_per_file or _DEFAULT_MAX_ROWS_PER_FILE), _MAX_LIMIT))
 
+    # ---- 3) Accumulate Insight objects ----
     insights: list[Insight] = []
 
+    # ---- 4) Build question lookup tables (question_id -> question row/text) ----
+    # These make response processing deterministic and avoid repeated scans of the questions CSV.
     q_lookup: dict[str, dict] = {}
     q_text_lookup: dict[str, str] = {}
     if dataset.join_key_questions:
@@ -63,17 +92,20 @@ def extract_survey_insights(
                     q_text_lookup[key_s] = str(row.get(k)).strip()
                     break
 
+    # Track whether we stopped early due to caps.
     capped = False
 
+    # ---- 5) Walk each response CSV and emit per-cell (wide) or per-row (long) response summaries ----
     for resp_csv in dataset.responses:
         if dataset.responses_wide:
-            # Wide format: columns are question IDs; iterate per question column
+            # ---- 5a) Wide format: columns are question IDs; each row is a respondent ----
             cols = dataset.response_question_columns or []
             for idx, row in enumerate(resp_csv.rows[:max_rows_per_file]):
                 if len(insights) >= max_insights:
                     capped = True
                     break
 
+                # Iterate each question column and create a response_summary insight when non-empty.
                 for qid in cols:
                     if len(insights) >= max_insights:
                         capped = True
@@ -94,6 +126,7 @@ def extract_survey_insights(
                         source_field=qid,
                         is_wide=True,
                     )
+                    # Each filled cell becomes a small, atomic Insight with evidence pointing to the CSV/row/column.
                     insights.append(
                         Insight(
                             id=str(uuid.uuid4()),
@@ -114,13 +147,14 @@ def extract_survey_insights(
                         )
                     )
         else:
-            # Long format: each row carries a question id via join_key_responses
+            # ---- 5b) Long format: each row carries a question id via join_key_responses ----
             join_key = dataset.join_key_responses or ""
             for idx, row in enumerate(resp_csv.rows[:max_rows_per_file]):
                 if len(insights) >= max_insights:
                     capped = True
                     break
 
+                # Resolve question id from the response row; skip if missing/empty.
                 qid = row.get(join_key)
                 if qid is None or qid == "":
                     continue
@@ -129,6 +163,7 @@ def extract_survey_insights(
                 if q_lookup and qid_s not in q_lookup:
                     continue
 
+                # Extract the first non-empty response value from common long-format fields.
                 source_field = None
                 response_value = None
                 for k in ("response", "answer", "value"):
@@ -148,6 +183,7 @@ def extract_survey_insights(
                     source_field=source_field,
                     is_wide=False,
                 )
+                # Each response row becomes one response_summary insight with evidence pointing to the source field.
                 insights.append(
                     Insight(
                         id=str(uuid.uuid4()),
@@ -171,7 +207,8 @@ def extract_survey_insights(
                         statistics={},
                     )
                 )
-                
+
+    # ---- 6) Return a batch update: all extracted insights + a single summarizing ToolMessage ----
     return Command(
         update={
             "insights": insights,

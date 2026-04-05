@@ -43,10 +43,13 @@ From the repo root:
 
 Coverage configuration lives in `.coveragerc`.
 
+Note: `coverage.py` and `pytest-cov` auto-discover `.coveragerc` by default. A file named `coveragerc` (no leading dot) will be ignored unless you explicitly pass `--cov-config coveragerc`.
+
 Key behaviors configured there:
 - Measures **branch coverage** (`branch = True`).
 - Treats `backend/app` as the source root (`source = backend/app`).
 - Omits boilerplate and non-target files like `__init__.py`, tests, and some infrastructure/mocks.
+- Hides fully-covered files in the terminal report (`skip_covered = True`) to reduce noise.
 
 ### Run tests with coverage
 
@@ -54,6 +57,9 @@ From the repo root:
 
 - Terminal report (missing lines shown):
   - `python -m pytest --cov --cov-report=term-missing`
+
+- If you want to use a non-default config filename (e.g. `coveragerc`):
+  - `python -m pytest --cov --cov-report=term-missing --cov-config=coveragerc`
 
 - Generate an HTML report in `htmlcov/`:
   - `python -m pytest --cov --cov-report=html`

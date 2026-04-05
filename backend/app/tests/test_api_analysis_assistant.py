@@ -10,6 +10,7 @@ from app.main import app
 client = TestClient(app)
 
 
+# API: /analysis/upload rejects files with a non-.csv extension.
 def test_analysis_upload_rejects_non_csv_file_extension():
     files = {"file": ("not.csv.txt", b"abc", "text/plain")}
     r = client.post("/analysis/upload", files=files)
@@ -17,6 +18,7 @@ def test_analysis_upload_rejects_non_csv_file_extension():
     assert r.json()["detail"] == "Only .csv files are allowed."
 
 
+# API: /analysis/upload validates that session_id is a UUID.
 def test_analysis_upload_rejects_invalid_session_id():
     files = {"file": ("one.csv", b"a,b\n1,2\n", "text/csv")}
     data = {"session_id": "not-a-uuid"}
@@ -25,6 +27,7 @@ def test_analysis_upload_rejects_invalid_session_id():
     assert r.json()["detail"] == "Invalid session_id (expected UUID)."
 
 
+# API: /analysis/upload creates a session_id when none is provided.
 def test_analysis_upload_accepts_missing_session_id_and_generates_one():
     files = {"file": ("one.csv", b"a,b\n1,2\n", "text/csv")}
     r = client.post("/analysis/upload", files=files)
@@ -36,6 +39,7 @@ def test_analysis_upload_accepts_missing_session_id_and_generates_one():
     UUID(body["session_id"])
 
 
+# API: /analysis/upload still returns upload acknowledgement even if the session previously chatted.
 def test_analysis_upload_acknowledges_even_with_prior_chat_ai_message():
     # Seed the checkpoint thread with a prior chatbot response (non-upload).
     # This mimics the real flow: user chats first, then uploads a CSV.

@@ -6,14 +6,11 @@ from app.domains.analysis_assistant.tools.aggregateCategoricalInsight import (
     aggregate_categorical_question_insight,
 )
 from app.domains.analysis_assistant.tools.aggregateNumericInsight import (
-    _weighted_mean,
-    _weighted_variance,
     aggregate_numeric_question_insight,
 )
-from app.domains.analysis_assistant.tools.numAggregation import (
-    aggregate_column,
-    aggregate_column_multi,
-)
+from app.domains.analysis_assistant.tools.aggregateColumn import aggregate_column
+from app.domains.analysis_assistant.tools.aggregateColumnMulti import aggregate_column_multi
+from app.domains.analysis_assistant.tools.utils.weighted_stats import weighted_mean, weighted_variance
 
 
 class _Runtime:
@@ -30,6 +27,7 @@ def _questions_csv(*, qid: str = "Q1", text: str = "Question") -> CSVFile:
     )
 
 
+# Single-CSV numeric aggregation: validates missing CSV, missing column, bad op, and a successful mean.
 def test_aggregate_column_errors_and_success():
     csv = CSVFile(
         id="c1",
@@ -57,6 +55,24 @@ def test_aggregate_column_errors_and_success():
     assert ok["stats"]["numeric_count"] == 2
 
 
+# Single-CSV numeric aggregation: returns an error payload when all values are non-numeric/empty.
+def test_aggregate_column_no_numeric_values_returns_error_payload():
+    csv = CSVFile(
+        id="c1",
+        columns=["x"],
+        rows=[{"x": "n/a"}, {"x": ""}, {"x": None}],
+        label=None,
+    )
+    state = {"csv_data": [csv]}
+
+    out = aggregate_column.func(csv_id="c1", column="x", operation="max", state=state)
+    assert out["result"] is None
+    assert "no numeric" in out["error"].lower()
+    assert 0.0 <= out["confidence"] <= 1.0
+    assert out["stats"]["numeric_count"] == 0
+
+
+# Multi-CSV numeric aggregation: validates missing ids, missing CSV, missing column, and a successful pooled mean.
 def test_aggregate_column_multi_errors_and_success():
     c1 = CSVFile(id="c1", columns=["x"], rows=[{"x": "1"}, {"x": "2"}], label=None)
     c2 = CSVFile(id="c2", columns=["x"], rows=[{"x": "3"}, {"x": "4"}], label=None)
@@ -80,13 +96,48 @@ def test_aggregate_column_multi_errors_and_success():
     assert ok["stats"]["numeric_count"] == 4
 
 
+# Multi-CSV numeric aggregation: returns an error payload when no numeric values exist across all files.
+def test_aggregate_column_multi_no_numeric_values_returns_error_payload():
+    c1 = CSVFile(id="c1", columns=["x"], rows=[{"x": "n/a"}, {"x": ""}], label=None)
+    c2 = CSVFile(id="c2", columns=["x"], rows=[{"x": None}], label=None)
+    state = {"csv_data": [c1, c2]}
+
+    out = aggregate_column_multi.func(csv_ids=["c1", "c2"], column="x", operation="min", state=state)
+    assert out["result"] is None
+    assert "no numeric" in out["error"].lower()
+    assert out["stats"]["numeric_count"] == 0
+    assert out["stats"]["files_with_numeric"] == 0
+
+
+# Multi-CSV numeric aggregation: exercises the cross-file consistency diagnostic payload for median.
+def test_aggregate_column_multi_median_adds_consistency_payload_when_files_disagree():
+    # Two files with very different medians to exercise the cross-file consistency penalty.
+    c1 = CSVFile(id="c1", columns=["x"], rows=[{"x": "0"}, {"x": "0"}], label=None)
+    c2 = CSVFile(id="c2", columns=["x"], rows=[{"x": "10"}, {"x": "10"}], label=None)
+    state = {"csv_data": [c1, c2]}
+
+    out = aggregate_column_multi.func(csv_ids=["c1", "c2"], column="x", operation="median", state=state)
+    assert out["result"] == 5.0
+    assert isinstance(out["stats"].get("consistency"), dict)
+
+
+# Weighted stat helpers: edge case where all weights are zero should return the fallback (0.0).
 def test_weighted_mean_and_variance_return_zero_when_all_weights_are_zero():
     pairs = [(10.0, 0.0), (20.0, 0.0)]
-    m = _weighted_mean(pairs)
+    m = weighted_mean(pairs)
     assert m == 0.0
-    assert _weighted_variance(pairs, m) == 0.0
+    assert weighted_variance(pairs, m) == 0.0
 
 
+# Weighted stat helpers: sanity-check mean/variance on a simple, non-degenerate example.
+def test_weighted_mean_and_variance_basic_case():
+    pairs = [(10.0, 1.0), (20.0, 3.0)]
+    m = weighted_mean(pairs)
+    assert m == 17.5
+    assert weighted_variance(pairs, m) == 18.75
+
+
+# Numeric question insight (wide responses): dataset not found, bad operation, and happy-path insight creation.
 def test_aggregate_numeric_question_insight_wide_and_errors():
     questions = _questions_csv(qid="Q1", text="Satisfaction")
     r1 = CSVFile(id="r1", columns=["Q1"], rows=[{"Q1": "1"}, {"Q1": "2"}], label=None)
@@ -135,6 +186,7 @@ def test_aggregate_numeric_question_insight_wide_and_errors():
     assert insight.statistics["numeric_count"] == 3
 
 
+# Numeric question insight (wide responses): handles per-file missing column + no numeric values overall.
 def test_aggregate_numeric_question_insight_wide_missing_column_and_no_numeric_values():
     questions = _questions_csv(qid="Q1", text="Satisfaction")
 
@@ -162,6 +214,7 @@ def test_aggregate_numeric_question_insight_wide_missing_column_and_no_numeric_v
     assert "No numeric values" in cmd.update["messages"][0].content
 
 
+# Numeric question insight (long responses): computes consistency payload and records missing-join-key diagnostics.
 def test_aggregate_numeric_question_insight_long_computes_consistency_and_handles_missing_join_key():
     questions = _questions_csv(qid="Q1", text="Score")
 
@@ -216,6 +269,7 @@ def test_aggregate_numeric_question_insight_long_computes_consistency_and_handle
     assert any(item.get("stats", {}).get("missing_join_key") for item in stats["per_file"])
 
 
+# Categorical question insight (wide responses): covers clear-mode summary and the all-unique summary branch.
 def test_aggregate_categorical_question_insight_wide_variants():
     questions = _questions_csv(qid="Q1", text="Favorite color")
 
@@ -279,6 +333,44 @@ def test_aggregate_categorical_question_insight_wide_variants():
     assert "all responses are unique" in cmd_unique.update["messages"][0].content
 
 
+# Categorical question insight: dataset-not-found path + wide-mode missing-column stats + top_k clamping.
+def test_aggregate_categorical_question_insight_dataset_not_found_and_wide_missing_column_stats():
+    # Dataset not found
+    cmd_nf = aggregate_categorical_question_insight.func(
+        dataset_id="missing",
+        question_id="Q1",
+        state={"datasets": []},
+        runtime=_Runtime(),
+    )
+    assert "No dataset" in cmd_nf.update["messages"][0].content
+
+    # Wide mode: one file missing the column, another file has data.
+    questions = _questions_csv(qid="Q1", text="Favorite")
+    r_ok = CSVFile(id="r1", columns=["Q1"], rows=[{"Q1": "A"}, {"Q1": "B"}], label="responses")
+    r_missing = CSVFile(id="r2", columns=["Other"], rows=[{"Other": "A"}], label="responses")
+    dataset = SurveyDataset(
+        id="d",
+        questions=questions,
+        responses=[r_ok, r_missing],
+        join_key_questions="question_id",
+        join_key_responses=None,
+        responses_wide=True,
+    )
+
+    cmd = aggregate_categorical_question_insight.func(
+        dataset_id="d",
+        question_id="Q1",
+        top_k=-1,  # exercise clamp to 1 (0 is treated as default via `top_k or 5`)
+        state={"datasets": [dataset]},
+        runtime=_Runtime(),
+    )
+
+    insight = cmd.update["insights"][0]
+    assert len(insight.evidence["top_values"]) == 1
+    assert any(item.get("stats", {}).get("missing_column") for item in insight.statistics["per_file"])
+
+
+# Categorical question insight (wide responses): rejects inputs where every value is empty-ish (including None).
 def test_aggregate_categorical_question_insight_wide_rejects_all_emptyish_values_including_none():
     questions = _questions_csv(qid="Q1", text="Favorite")
     responses = CSVFile(
@@ -311,6 +403,7 @@ def test_aggregate_categorical_question_insight_wide_rejects_all_emptyish_values
     assert "No non-empty categorical values" in cmd.update["messages"][0].content
 
 
+# Categorical question insight (long responses): includes field-level evidence and missing-join-key diagnostics.
 def test_aggregate_categorical_question_insight_long_includes_field_evidence_and_missing_join_key_stats():
     questions = _questions_csv(qid="Q1", text="Color")
 
@@ -360,6 +453,7 @@ def test_aggregate_categorical_question_insight_long_includes_field_evidence_and
     assert any(item.get("stats", {}).get("missing_join_key") for item in per_file)
 
 
+# Categorical question insight (wide responses): exercises “mostly unique” and “minor mode” summary variants.
 def test_aggregate_categorical_question_insight_mostly_unique_and_minor_mode_summaries():
     questions = _questions_csv(qid="Q1", text="Open ended")
 

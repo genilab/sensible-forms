@@ -11,12 +11,14 @@ from app.main import app
 client = TestClient(app)
 
 
+# API: /health returns an OK status payload.
 def test_healthcheck():
     r = client.get("/health")
     assert r.status_code == 200
     assert r.json() == {"status": "ok"}
 
 
+# API: question generation endpoint responds with a non-empty list.
 def test_question_generation_flow():
     r = client.post("/question-generation/", json={"topic": "Employee engagement"})
     assert r.status_code == 200
@@ -26,6 +28,7 @@ def test_question_generation_flow():
     assert len(body["questions"]) >= 1
 
 
+# API: analysis endpoint responds with a non-empty insights string.
 def test_analysis_flow():
     r = client.post("/analysis/", json={"data_summary": "N=42. Overall satisfaction is 3.8/5."})
     assert r.status_code == 200
@@ -35,6 +38,7 @@ def test_analysis_flow():
     assert len(body["insights"]) > 0
 
 
+# API: analysis endpoint accepts a chat-style messages payload.
 def test_analysis_flow_accepts_messages():
     r = client.post(
         "/analysis/",
@@ -54,6 +58,7 @@ def test_analysis_flow_accepts_messages():
     assert len(body["insights"]) > 0
 
 
+# API: form deployment upload + chat workflow returns expected shapes.
 def test_form_deployment_flow():
     files = {"file": ("survey.csv", b"question_text,question_type\nHello?,short_text\n", "text/csv")}
     deploy_r = client.post("/form-deployment/deploy", files=files)
@@ -77,12 +82,14 @@ def test_form_deployment_flow():
     assert isinstance(chat_body["message"], str)
 
 
+# API: uploads endpoint rejects non-CSV uploads.
 def test_upload_flow_rejects_non_csv():
     files = {"file": ("not.csv.txt", b"abc", "text/plain")}
     r = client.post("/uploads/", files=files)
     assert r.status_code == 400
 
 
+# API: uploads endpoint accepts CSV uploads and returns the filename.
 def test_upload_flow_accepts_csv():
     files = {"file": ("sample.csv", b"a,b\n1,2\n", "text/csv")}
     r = client.post("/uploads/", files=files)
@@ -90,6 +97,7 @@ def test_upload_flow_accepts_csv():
     assert r.json()["filename"] == "sample.csv"
 
 
+# API: analysis/upload ingests CSVs and persists session state across repeated uploads.
 def test_analysis_upload_ingests_csv_and_persists_session_state():
     # First upload seeds the session with a single CSV.
     session_id = "00000000-0000-0000-0000-000000000001"

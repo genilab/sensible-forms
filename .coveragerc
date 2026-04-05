@@ -1,19 +1,19 @@
 [run]
+# Keep all backend subsystems included in coverage measurement.
 branch = True
 source =
-    backend/app
+	backend/app
+
+# Omit boilerplate and non-production code.
 omit =
-    */__pycache__/*
-    */__init__.py
-    backend/app/core/*
-    backend/app/domains/form_deployment/*
-    backend/app/domains/question_generation/*
-    backend/app/tests/*
-    backend/app/infrastructure/llm/mock.py
-    backend/app/api/form_deployment.py
-    backend/app/api/question_generation.py
+	*/__pycache__/*
+	*/__init__.py
+	backend/app/core/*
+	backend/app/tests/*
+	backend/app/infrastructure/llm/mock.py
 
 [report]
 show_missing = True
-skip_covered = False
+# Hide files that are already at 100% to reduce noise.
+skip_covered = True
 precision = 0

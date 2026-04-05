@@ -4,9 +4,23 @@ from typing import Annotated
 
 from app.domains.analysis_assistant.structs.csvFile import CSVFile
 
-
+# FALLBACK: infer_label_for_csv and label_csv are not currently used in the graph, but are available as tools for the chatbot to call if it wants to assign labels to CSVs (e.g. inferred from content or based on user instructions).
 def infer_label_for_csv(csv_file: CSVFile) -> str | None:
-    """Best-effort deterministic labeling for common survey CSV shapes."""
+    """Infer a best-effort label for a CSV using deterministic heuristics.
+
+    This helper attempts to recognize common survey shapes and returns a simple
+    label such as ``"questions"`` or ``"responses"``.
+
+    Notes:
+    - This is intentionally conservative; it returns ``None`` if it cannot infer.
+    - It does not inspect cell values, only column names.
+
+    Args:
+        csv_file: The CSV to classify.
+
+    Returns:
+        A string label (e.g. ``"questions"`` / ``"responses"``) or ``None``.
+    """
     cols = set((csv_file.columns or []))
 
     questionish_cols = {
@@ -40,7 +54,20 @@ def infer_label_for_csv(csv_file: CSVFile) -> str | None:
 
 @tool
 def label_csv(csv_id: str, label: str, state: Annotated[dict, InjectedState]) -> str:
-    """Assign a human-readable label to a CSV file."""
+    """Assign/update a human-readable label for a CSV already in state.
+
+    This tool mutates the in-memory CSV object found in ``state["csv_data"]`` by
+    setting its ``label`` field. The label is used elsewhere to refer to CSVs in
+    a more user-friendly way (e.g. distinguishing multiple response CSVs).
+
+    Args:
+        csv_id: The id of the CSV to label.
+        label: The label to assign.
+        state: LangGraph-injected state dict containing ``csv_data``.
+
+    Returns:
+        A short status string describing what happened.
+    """
     for csv in (state or {}).get("csv_data") or []:
         if csv.id == csv_id:
             csv.label = label

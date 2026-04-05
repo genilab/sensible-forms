@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
+from langchain_core.messages import AIMessage
 
 from app.domains.analysis_assistant.nodes.ingestion_orchestrator import (
     _ensure_unique_label,
@@ -32,12 +32,14 @@ class _CapturingLLM:
         return AIMessage(content="ok")
 
 
+# Labeling helper: ensures labels are made unique via numeric suffixing.
 def test_ensure_unique_label_appends_suffixes():
     existing = {"responses", "responses_2"}
     assert _ensure_unique_label(existing, "questions") == "questions"
     assert _ensure_unique_label(existing, "responses") == "responses_3"
 
 
+# Ingestion orchestrator: deterministically labels CSVs and creates a wide SurveyDataset without calling the LLM.
 def test_ingestion_orchestrator_labels_and_creates_wide_dataset_deterministically():
     llm = _FakeLLM()
     node = make_ingestion_orchestrator_node(llm)
@@ -72,6 +74,7 @@ def test_ingestion_orchestrator_labels_and_creates_wide_dataset_deterministicall
     assert ds.response_question_columns == ["Q1", "Q2"]
 
 
+# Ingestion orchestrator: creates a long SurveyDataset when long-format response columns are detected.
 def test_ingestion_orchestrator_creates_long_dataset_deterministically():
     llm = _FakeLLM()
     node = make_ingestion_orchestrator_node(llm)
@@ -96,6 +99,7 @@ def test_ingestion_orchestrator_creates_long_dataset_deterministically():
     assert ds.join_key_responses == "question_id"
 
 
+# Ingestion orchestrator: in upload mode, never calls the LLM (even if labeling can't infer a type).
 def test_ingestion_orchestrator_upload_mode_does_not_call_llm_when_only_unlabeled():
     llm = _FakeLLM()
     node = make_ingestion_orchestrator_node(llm)
@@ -108,6 +112,7 @@ def test_ingestion_orchestrator_upload_mode_does_not_call_llm_when_only_unlabele
     assert llm.invoked is False
 
 
+# Ingestion orchestrator: in non-upload mode, ambiguous/unlabeled CSVs still do not trigger the LLM.
 def test_ingestion_orchestrator_non_upload_calls_llm_when_needed():
     llm = _FakeLLM()
     node = make_ingestion_orchestrator_node(llm)
@@ -115,16 +120,16 @@ def test_ingestion_orchestrator_non_upload_calls_llm_when_needed():
     unknown = CSVFile(id="u1", columns=["a", "b"], rows=[{"a": 1, "b": 2}], label=None)
 
     out = node({"csv_data": [unknown], "datasets": [], "mode": None})
-    assert llm.invoked is True
-    assert "messages" in out
-    assert len(out["messages"]) == 1
+    assert llm.invoked is False
+    assert out == {}
 
 
-def test_ingestion_orchestrator_llm_context_includes_candidates_and_unlabeled_previews():
+# Ingestion orchestrator: avoids LLM calls when dataset construction remains ambiguous.
+def test_ingestion_orchestrator_does_not_call_llm_when_ambiguous_non_upload():
     llm = _CapturingLLM()
     node = make_ingestion_orchestrator_node(llm)
 
-    # Intentionally avoid deterministic labeling:
+    # Intentionally avoid deterministic labeling/dataset creation:
     # - questions CSV has only 'question_id' (not enough to infer 'questions')
     # - responses wide has only 2 Q* columns (not enough to infer 'responses')
     # - long responses has no respondent_id and <3 Q* columns
@@ -147,21 +152,9 @@ def test_ingestion_orchestrator_llm_context_includes_candidates_and_unlabeled_pr
         label=None,
     )
 
-    out = node({"csv_data": [questions_like, responses_wide_like, responses_long_like], "datasets": [], "mode": None})
+    out = node(
+        {"csv_data": [questions_like, responses_wide_like, responses_long_like], "datasets": [], "mode": None}
+    )
 
-    assert llm.invoked is True
-    assert "messages" in out
-    assert len(out["messages"]) == 1
-
-    # Validate the constructed context (covers many branches in the LLM-path).
-    assert llm.last_messages is not None
-    assert isinstance(llm.last_messages[0], SystemMessage)
-    assert isinstance(llm.last_messages[1], HumanMessage)
-
-    text = llm.last_messages[1].content
-    assert "CSV files (trimmed):" in text
-    assert "Candidate join keys (overlap):" in text
-    assert "Question IDs sample" in text
-    assert "Wide-format candidates:" in text
-    assert "Response columns preview" in text
-    assert "Unlabeled CSVs:" in text
+    assert llm.invoked is False
+    assert out == {}

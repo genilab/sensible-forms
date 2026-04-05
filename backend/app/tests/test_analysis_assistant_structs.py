@@ -4,6 +4,7 @@ from app.domains.analysis_assistant.structs.csvFile import CSVFile
 from app.domains.analysis_assistant.structs.surveyDataset import SurveyDataset
 
 
+# CSVFile struct: validates convenience properties/helpers (num_rows, sample, column_values).
 def test_csvfile_helpers():
     csv_file = CSVFile(
         id="c1",
@@ -17,6 +18,7 @@ def test_csvfile_helpers():
     assert csv_file.column_values("b") == [2]
 
 
+# SurveyDataset struct: validates schema checks for long vs wide response layouts.
 def test_survey_dataset_validate_long_and_wide():
     questions = CSVFile(
         id="q",

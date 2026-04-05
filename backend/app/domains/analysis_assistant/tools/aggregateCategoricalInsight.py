@@ -55,14 +55,29 @@ def aggregate_categorical_question_insight(
 ) -> Command:
     """Aggregate text/categorical responses for a question into a single Insight.
 
-    Produces:
-    - counts + proportions for the top responses
-    - evidence: sample (csv_id, row_index, column/field, value)
-    - confidence: data-driven from sample size, coverage, dominance, and cross-file consistency
+    Supports both response layouts:
+    - wide responses: question id corresponds to a column
+    - long/tidy responses: question id is stored in ``join_key_responses`` and the
+      response value is taken from common fields (response/answer/value)
 
-    Works for both wide and long response formats.
+    Produces:
+    - top-k counts + proportions
+    - evidence samples: (csv_id, row_index, column/field, value)
+    - confidence: derived from sample size/coverage/dominance and cross-file consistency
+
+    Args:
+        dataset_id: Dataset id in ``state["datasets"]``.
+        question_id: User reference to a question (id/label/partial); resolved deterministically.
+        top_k: Maximum number of categorical values to include (clamped to a small range).
+        state: LangGraph-injected state dict.
+        runtime: Tool runtime injected by ToolNode.
+
+    Returns:
+        A ``Command`` update that appends an ``Insight`` to ``state["insights"]`` and emits a
+        user-visible ``ToolMessage``. On validation failures, returns a ToolMessage and no Insight.
     """
 
+    # ---- 1) Validate tool runtime + locate the dataset in state ----
     state = state or {}
     if runtime is None:  # pragma: no cover
         raise ValueError("ToolRuntime was not injected.")
@@ -80,19 +95,32 @@ def aggregate_categorical_question_insight(
             }
         )
 
+    # ---- 2) Resolve user question reference to a concrete question id / column ----
+    # Users may refer to questions by label, partial ids, etc.; resolve conservatively
+    # to a known question id/column so the rest of this tool can be deterministic.
     resolved_qid = resolve_question_id(user_ref=str(question_id), known_ids=known_question_ids(dataset))
 
-    k = max(1, min(int(top_k or 5), 10))
+    # ---- 3) Clamp top_k (maximum number of answers to include) to a small, safe range ----
+    # Prevent huge outputs and keep the insight readable.
+    k = max(1, min(int(top_k or 5), 8))
 
+    # ---- 4) Initialize pooled aggregations across *all* response CSVs ----
+    # We normalize categorical values (trim + lowercase) so that variants like
+    # "Yes", " yes ", and "YES" are counted together.
     pooled_counter: Counter[str] = Counter()
     pooled_display: dict[str, str] = {}
 
     # Evidence buckets: normalized_value -> list[evidence]
+    # We keep a few example rows for each value so downstream UI/LLM can cite sources.
     evidence_samples: dict[str, list[dict]] = defaultdict(list)
 
+    # Coverage counters:
+    # - candidates: how many rows *could* contain an answer for this question
+    # - non_empty: how many actually contain a non-empty-ish answer
     total_candidates = 0
     total_non_empty = 0
 
+    # Per-file stats are used for confidence scoring + cross-file consistency checks.
     per_file: list[dict] = []
 
     for resp_csv in dataset.responses:
@@ -104,6 +132,8 @@ def aggregate_categorical_question_insight(
         missing_join_key = False
 
         if dataset.responses_wide:
+            # ---- 5) Aggregate within a single response CSV ----
+            # We compute per-file counters first, then merge into pooled counters.
             if resolved_qid not in (resp_csv.columns or []):
                 missing_column = True
             else:
@@ -112,6 +142,7 @@ def aggregate_categorical_question_insight(
                     raw = row.get(resolved_qid)
                     if _is_emptyish(raw):
                         continue
+                # Wide responses: each question is a column (Q1, Q2, ...), each row is a respondent.
                     non_empty += 1
                     n = _norm(raw)
                     file_counter[n] += 1
@@ -127,7 +158,8 @@ def aggregate_categorical_question_insight(
                                 "value": str(raw).strip(),
                             }
                         )
-        else:
+        # long/tidy format: look for question_id column to match resolved_qid, then extract response value from the same row.
+        else:   
             qcol = dataset.join_key_responses or ""
             if not qcol or qcol not in (resp_csv.columns or []):
                 missing_join_key = True
@@ -135,6 +167,8 @@ def aggregate_categorical_question_insight(
                 for idx, row in enumerate(resp_csv.rows):
                     if str(row.get(qcol)) != str(resolved_qid):
                         continue
+                # Long/tidy responses: each row is typically (question_id, response) for a respondent.
+                # The join key identifies which question a given row belongs to.
                     candidates += 1
                     field, raw = extract_long_response_value(row)
                     if _is_emptyish(raw):
@@ -157,12 +191,13 @@ def aggregate_categorical_question_insight(
         total_candidates += candidates
         total_non_empty += non_empty
 
-        # merge into pooled
+        # ---- 6) Merge per-file counts into pooled counts ----
         pooled_counter.update(file_counter)
         for n, disp in file_display.items():
             pooled_display.setdefault(n, disp)
 
-        # per-file stats
+        # ---- 7) Compute per-file dominance + confidence diagnostics ----
+        # This feeds the global confidence score and helps diagnose partial/messy data.
         file_total = sum(file_counter.values())
         top_items = file_counter.most_common(1)
         top_norm = top_items[0][0] if top_items else None
@@ -198,6 +233,7 @@ def aggregate_categorical_question_insight(
             }
         )
 
+    # ---- 8) If nothing usable was found, return a tool message (no Insight) ----
     if total_non_empty == 0 or not pooled_counter:
         return Command(
             update={
@@ -212,10 +248,11 @@ def aggregate_categorical_question_insight(
             }
         )
 
+    # ---- 9) Compute pooled (cross-file) top-k distribution ----
     pooled_total = sum(pooled_counter.values())
     top = pooled_counter.most_common(k)
 
-    # compute pooled dominance stats
+    # Dominance stats describe whether there is a clear "mode" response.
     top_norm, top_count = top[0]
     top_share = top_count / pooled_total if pooled_total else 0.0
 
@@ -227,7 +264,8 @@ def aggregate_categorical_question_insight(
         second_share = second_count / pooled_total
     margin = max(0.0, top_share - second_share)
 
-    # consistency across files: do files agree on the global top value?
+    # ---- 10) Consistency across files ----
+    # If multiple response CSVs exist, agreement on the global top response increases confidence.
     files_with_data = 0
     files_matching_top = 0
     top_shares: list[float] = []
@@ -245,6 +283,7 @@ def aggregate_categorical_question_insight(
     agreement = (files_matching_top / files_with_data) if files_with_data else 1.0
     consistency_score = agreement
 
+    # ---- 11) Compute overall confidence score ----
     confidence = score_categorical_distribution(
         non_empty_count=pooled_total,
         candidate_count=total_candidates or None,
@@ -253,9 +292,11 @@ def aggregate_categorical_question_insight(
         consistency_score=consistency_score if files_with_data >= 2 else None,
     )
 
+    # Prefer human-readable question text when we can resolve it.
     question_text = resolve_question_text(dataset, resolved_qid)
     question_label = question_text or f"Question {resolved_qid}"
 
+    # ---- 12) Build the top-k payload with evidence ----
     top_values: list[dict] = []
     for n, c in top:
         disp = pooled_display.get(n, n)
@@ -268,6 +309,7 @@ def aggregate_categorical_question_insight(
             }
         )
 
+    # ---- 13) Adapt the summary for open-ended / high-diversity distributions ----
     # Open-ended / high-diversity handling:
     # If every non-empty response is unique, there is no meaningful "most common".
     diversity_ratio = (unique_count / pooled_total) if pooled_total else 0.0
@@ -304,6 +346,8 @@ def aggregate_categorical_question_insight(
             f"({top_share:.0%}, n={pooled_total})"
         )
 
+    # ---- 14) Materialize Insight + return Command update ----
+    # The graph runtime merges `insights`/`messages` into state.
     insight = Insight(
         id=str(uuid.uuid4()),
         dataset_id=dataset.id,

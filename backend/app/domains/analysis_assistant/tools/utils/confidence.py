@@ -4,6 +4,15 @@ import math
 from typing import Any, Dict, Optional
 
 
+# Lower bound used across deterministic/scored insights.
+# We avoid hard 0.0 to reduce brittleness while still signaling low confidence.
+MINIMUM_CONFIDENCE_SCORE = 0.05
+
+# Upper bound used across deterministic/scored insights.
+# We avoid hard 1.0 to reduce brittleness.
+MAXIMUM_CONFIDENCE_SCORE = 0.95
+
+
 _DEFAULT_QUESTION_TEXT_KEYS = ["question", "question_text", "text", "prompt", "label"]
 
 
@@ -94,7 +103,7 @@ def score_response_summary(
         score -= 0.05
 
     # Keep in a sensible band; avoid absolute 0/1 to reduce brittleness.
-    score = min(0.95, max(0.05, score))
+    score = min(MAXIMUM_CONFIDENCE_SCORE, max(MINIMUM_CONFIDENCE_SCORE, score))
     return clamp01(score)
 
 
@@ -120,7 +129,7 @@ def score_numeric_aggregation(
     rc = row_count if (row_count is not None and row_count > 0) else None
 
     if n == 0:
-        return 0.05
+        return MINIMUM_CONFIDENCE_SCORE
 
     # Sample size confidence: saturates toward 1 as n grows.
     # n=10 -> ~0.33, n=30 -> ~0.70, n=60 -> ~0.90
@@ -150,7 +159,7 @@ def score_numeric_aggregation(
     elif n < 10:
         score *= 0.85
 
-    score = min(0.95, max(0.05, score))
+    score = min(MAXIMUM_CONFIDENCE_SCORE, max(MINIMUM_CONFIDENCE_SCORE, score))
     return clamp01(score)
 
 
@@ -176,7 +185,7 @@ def score_categorical_distribution(
 
     n = max(0, int(non_empty_count or 0))
     if n == 0:
-        return 0.05
+        return MINIMUM_CONFIDENCE_SCORE
 
     # Sample size saturating curve
     size_score = 1.0 - math.exp(-n / 25.0)
@@ -205,5 +214,5 @@ def score_categorical_distribution(
         cs = max(0.0, min(1.0, float(consistency_score)))
         score *= (0.60 + 0.40 * cs)
 
-    score = min(0.95, max(0.05, score))
+    score = min(MAXIMUM_CONFIDENCE_SCORE, max(MINIMUM_CONFIDENCE_SCORE, score))
     return clamp01(score)

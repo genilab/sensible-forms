@@ -57,7 +57,7 @@ class AnalysisAssistantService:
 
         # Message input modes:
         # - request.messages: treat as message deltas to append (preferred for chat UIs)
-        # - data_summary: legacy single-blob summary
+        # - data_summary: legacy single-blob summary, used as the initial user prompt if messages are not provided
         # - csv_text only: upload flow (no need to generate an empty prompt)
         if request.messages:
             payload["messages"] = to_langchain_messages([m.model_dump() for m in request.messages])
@@ -70,6 +70,7 @@ class AnalysisAssistantService:
 
         result = self._graph.invoke(payload, config=config)
 
+        # Extract the last AI message as insights, with fallbacks for non-AIMessage outputs to preserve API stability.
         messages = result.get("messages") or []
         last_ai: AIMessage | None = next(
             (m for m in reversed(messages) if isinstance(m, AIMessage)), None

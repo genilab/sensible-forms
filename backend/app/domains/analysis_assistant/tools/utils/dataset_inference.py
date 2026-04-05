@@ -2,7 +2,7 @@ from typing import Optional, List, Set
 
 from app.domains.analysis_assistant.structs.csvFile import CSVFile
 
-PRIORITY_QID_COLS = ["question_id", "qid", "questionId", "id"]
+PRIORITY_QID_COLS = ["question_id", "qid", "q_id", "questionId", "id"]
 
 
 def find_question_id_column(columns: List[str] | None) -> Optional[str]:

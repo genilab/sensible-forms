@@ -61,21 +61,6 @@ Formatting:
 """.strip()
 
 
-# System prompt used by the ingestion orchestrator LLM call.
-INGESTION_ORCHESTRATOR_SYSTEM_PROMPT = (
-    "You assist with academic survey data. "
-    "Rely on inference from provided context rather than fixed column-name assumptions. "
-    "First, if confident, assign concise labels to unlabeled CSVs via label_csv; if uncertain, ask the user for clarification. "
-    "Use structural cues: questions files typically have one row per question with descriptive text/metadata; responses files have many rows (one per participant or per answer), and wide-format responses often have many columns corresponding to questions. "
-    "Then, if multiple CSVs belong to the same survey, infer joins and call create_survey_dataset with precise parameters: "
-    "- Set join_key_questions to the exact column in the questions CSV that contains the question identifiers. "
-    "- For wide-format responses, set responses_wide=True and provide response_question_columns (the columns representing question IDs). "
-    "- For long/tidy responses, set join_key_responses to the exact column containing the question ID per row. "
-    "Prefer wide-format when both patterns appear. Keep outputs short and focus on tool calls only. "
-    "Do not call extract_survey_insights in this turn; only after a dataset exists and is confirmed."
-)
-
-
 # When the provider requires the prompt to end with a HumanMessage.
 FALLBACK_HUMAN_PROMPT = "How can you help with my survey data?"
 

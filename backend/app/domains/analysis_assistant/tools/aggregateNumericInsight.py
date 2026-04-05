@@ -12,7 +12,11 @@ from langgraph.types import Command
 
 from app.domains.analysis_assistant.structs.insights import Insight
 from app.domains.analysis_assistant.structs.surveyDataset import SurveyDataset
-from app.domains.analysis_assistant.tools.utils.confidence import score_numeric_aggregation
+from app.domains.analysis_assistant.tools.utils.confidence import (
+    MAXIMUM_CONFIDENCE_SCORE,
+    MINIMUM_CONFIDENCE_SCORE,
+    score_numeric_aggregation,
+)
 from app.domains.analysis_assistant.tools.utils.number_parse import try_parse_float
 from app.domains.analysis_assistant.tools.utils.question_resolve import resolve_question_id
 from app.domains.analysis_assistant.tools.utils.survey_helpers import (
@@ -20,20 +24,20 @@ from app.domains.analysis_assistant.tools.utils.survey_helpers import (
     known_question_ids,
     resolve_question_text,
 )
+from app.domains.analysis_assistant.tools.utils.weighted_stats import weighted_mean, weighted_variance
 
 
-def _weighted_mean(pairs: list[tuple[float, float]]) -> float:
-    total_w = sum(w for _, w in pairs)
-    if total_w <= 0:
-        return 0.0
-    return sum(x * w for x, w in pairs) / total_w
+# Numeric stability / confidence tuning constants.
+_VARIANCE_FLOOR = 0.0
+_DENOMINATOR_FLOOR = 1.0
 
+# How strongly to down-weight pooled confidence when per-file results disagree.
+_CONSISTENCY_BLEND_BASE = 0.60
+_CONSISTENCY_BLEND_WEIGHT = 0.40
 
-def _weighted_variance(pairs: list[tuple[float, float]], mean: float) -> float:
-    total_w = sum(w for _, w in pairs)
-    if total_w <= 0:
-        return 0.0
-    return sum(w * (x - mean) ** 2 for x, w in pairs) / total_w
+# Scale for converting heterogeneity into a (0,1] consistency score.
+# Smaller => harsher penalty for disagreement.
+_HETEROGENEITY_DECAY_SCALE = 0.25
 
 
 def _to_float(value: Any) -> Optional[float]:
@@ -48,15 +52,32 @@ def aggregate_numeric_question_insight(
     state: Annotated[dict, InjectedState] = None,
     runtime: Any = None,
 ) -> Command:
-    """Aggregate numeric responses for a specific question in a SurveyDataset and store as an Insight.
+    """Aggregate numeric responses for a question into a single Insight.
 
-    Works for both:
-    - wide responses: question_id corresponds to a column
-    - long responses: question_id found in join_key_responses and numeric value in response/answer/value
+    Supports both response layouts:
+    - wide responses: question id corresponds to a column
+    - long/tidy responses: question id stored in ``join_key_responses`` and numeric
+      value extracted from common fields (response/answer/value)
 
-    Returns updated insights list.
+    The tool:
+    - resolves a user-provided question reference to a known question id
+    - parses numeric values using ``try_parse_float`` (skipping non-numeric)
+    - computes the requested aggregation (mean/median/min/max)
+    - computes confidence via ``score_numeric_aggregation`` with a cross-file consistency adjustment
+
+    Args:
+        dataset_id: Dataset id in ``state["datasets"]``.
+        question_id: User reference to a question (id/label/partial); resolved deterministically.
+        operation: One of ``mean``, ``median``, ``min``, ``max``.
+        state: LangGraph-injected state dict.
+        runtime: Tool runtime injected by ToolNode.
+
+    Returns:
+        A ``Command`` update that adds an ``Insight`` and emits a ``ToolMessage``.
+        On validation failures or no data found, returns a ToolMessage and no Insight.
     """
 
+    # ---- 1) Validate tool runtime + locate the dataset in state ----
     state = state or {}
     if runtime is None:  # pragma: no cover
         raise ValueError("ToolRuntime was not injected.")
@@ -75,8 +96,12 @@ def aggregate_numeric_question_insight(
             }
         )
 
+    # ---- 2) Resolve user question reference to a concrete question id / column ----
+    # Users may refer to questions by label, partial ids, etc.; resolve conservatively
+    # to a known question id/column so the rest of this tool can be deterministic.
     resolved_qid = resolve_question_id(user_ref=str(question_id), known_ids=known_question_ids(dataset))
 
+    # ---- 3) Validate requested operation ----
     ops = {
         "mean": statistics.mean,
         "median": statistics.median,
@@ -96,24 +121,29 @@ def aggregate_numeric_question_insight(
             }
         )
 
+    # ---- 4) Collect numeric values across all response CSVs (and keep per-file stats) ----
+    # Coverage counters:
+    # - candidate_rows: how many rows *could* contain an answer for this question
+    # - numeric_count: how many rows parsed to a usable float
     pooled_values: list[float] = []
     per_file: list[dict] = []
     total_candidate_rows = 0
     total_numeric_count = 0
 
     for resp_csv in dataset.responses:
+        # ---- 5) Aggregate within a single response CSV ----
         file_values: list[float] = []
         candidate_rows = 0
 
         if dataset.responses_wide:
-            # Each row is a respondent; question_id is a column
+            # Wide responses: each row is a respondent; question_id is a column.
             if resolved_qid not in (resp_csv.columns or []):
                 # Skip this file; do not hard-fail.
                 per_file.append(
                     {
                         "csv_id": resp_csv.id,
                         "result": None,
-                        "confidence": 0.05,
+                        "confidence": MINIMUM_CONFIDENCE_SCORE,
                         "stats": {
                             "numeric_count": 0,
                             "row_count": getattr(resp_csv, "num_rows", None),
@@ -130,14 +160,15 @@ def aggregate_numeric_question_insight(
                     continue
                 file_values.append(v)
         else:
-            # Long/tidy: filter rows matching question_id
+            # Long/tidy responses: filter rows matching question_id.
+            # The join key identifies which question a given row belongs to.
             qcol = dataset.join_key_responses or ""
             if not qcol or qcol not in (resp_csv.columns or []):
                 per_file.append(
                     {
                         "csv_id": resp_csv.id,
                         "result": None,
-                        "confidence": 0.05,
+                        "confidence": MINIMUM_CONFIDENCE_SCORE,
                         "stats": {
                             "numeric_count": 0,
                             "row_count": getattr(resp_csv, "num_rows", None),
@@ -157,11 +188,13 @@ def aggregate_numeric_question_insight(
                     continue
                 file_values.append(v)
 
+        # ---- 6) Merge per-file numeric values into pooled values ----
         pooled_values.extend(file_values)
         pooled_n = len(file_values)
         total_numeric_count += pooled_n
         total_candidate_rows += candidate_rows
 
+        # ---- 7) Compute per-file result + confidence diagnostics ----
         file_stats: Dict[str, Any] = {
             "numeric_count": pooled_n,
             "row_count": candidate_rows,
@@ -189,6 +222,7 @@ def aggregate_numeric_question_insight(
             }
         )
 
+    # ---- 8) If nothing usable was found, return a tool message (no Insight) ----
     if not pooled_values:
         return Command(
             update={
@@ -203,6 +237,7 @@ def aggregate_numeric_question_insight(
             }
         )
 
+    # ---- 9) Compute pooled result + base confidence ----
     pooled_result = ops[op](pooled_values)
     pooled_conf = score_numeric_aggregation(
         numeric_count=total_numeric_count,
@@ -210,7 +245,10 @@ def aggregate_numeric_question_insight(
         operation=op,
     )
 
-    # Cross-file consistency (only meaningful for mean/median)
+    # ---- 10) Cross-file consistency adjustment ----
+    # If multiple response CSVs exist, we reduce confidence when the per-file
+    # results disagree (meaning the pooled result may be unstable).
+    # Only meaningful for mean/median (min/max can differ legitimately by sampling).
     metric_pairs: list[tuple[float, float]] = []
     files_with_numeric = 0
     for item in per_file:
@@ -223,19 +261,21 @@ def aggregate_numeric_question_insight(
     consistency_score = 1.0
     heterogeneity = None
     if op in {"mean", "median"} and len(metric_pairs) >= 2:
-        m = _weighted_mean(metric_pairs)
-        var = _weighted_variance(metric_pairs, m)
-        stdev = math.sqrt(max(0.0, var))
-        denom = max(1.0, abs(m))
+        m = weighted_mean(metric_pairs)
+        var = weighted_variance(metric_pairs, m)
+        stdev = math.sqrt(max(_VARIANCE_FLOOR, var))
+        denom = max(_DENOMINATOR_FLOOR, abs(m))
         heterogeneity = stdev / denom
-        consistency_score = math.exp(-heterogeneity / 0.25)
+        consistency_score = math.exp(-heterogeneity / _HETEROGENEITY_DECAY_SCALE)
 
-    final_conf = pooled_conf * (0.60 + 0.40 * consistency_score)
-    final_conf = min(0.95, max(0.05, final_conf))
+    final_conf = pooled_conf * (_CONSISTENCY_BLEND_BASE + _CONSISTENCY_BLEND_WEIGHT * consistency_score)
+    final_conf = min(MAXIMUM_CONFIDENCE_SCORE, max(MINIMUM_CONFIDENCE_SCORE, final_conf))
 
+    # Prefer human-readable question text when we can resolve it.
     question_text = resolve_question_text(dataset, resolved_qid)
     question_label = question_text or f"Question {resolved_qid}"
 
+    # ---- 11) Build statistics payload for the Insight ----
     stats: Dict[str, Any] = {
         "numeric_count": total_numeric_count,
         "row_count": total_candidate_rows or None,
@@ -258,6 +298,7 @@ def aggregate_numeric_question_insight(
             "score": consistency_score,
         }
 
+    # ---- 12) Materialize Insight + return Command update ----
     summary = f"{question_label}: {op} = {pooled_result} (n={total_numeric_count})"
 
     insight = Insight(

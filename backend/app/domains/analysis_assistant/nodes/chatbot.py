@@ -64,7 +64,7 @@ def make_chatbot_node(llm: LLMClient):
         system_message = SystemMessage(content=system_context)
 
         try:
-            # Normal chatbot path: Ensuring the prompt ends with a HumanMessage
+            # Normal chatbot path: Ensuring the prompt ends with a HumanMessage (and in general, a good practice)
             # (Google GenAI requirement)
             final_messages = [system_message] + messages
 

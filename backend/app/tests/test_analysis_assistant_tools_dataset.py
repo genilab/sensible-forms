@@ -11,6 +11,7 @@ class _Runtime:
         self.tool_call_id = tool_call_id
 
 
+# create_survey_dataset: validates required args and wide-mode question-column inference.
 def test_create_survey_dataset_errors_and_wide_inference():
     questions = CSVFile(
         id="q",
@@ -58,6 +59,7 @@ def test_create_survey_dataset_errors_and_wide_inference():
     assert ds.response_question_columns == ["Q1", "Q2"]
 
 
+# create_survey_dataset + extract_survey_insights: long join-key inference, extraction in long mode, and wide-mode caps.
 def test_create_survey_dataset_long_infers_join_key_responses_and_extract_insights_long_and_wide():
     questions = CSVFile(
         id="q",
@@ -128,6 +130,7 @@ def test_create_survey_dataset_long_infers_join_key_responses_and_extract_insigh
     assert len(cmd_ins_w.update["insights"]) == 1
 
 
+# create_survey_dataset: join-key fallback to alternative id columns and error when no join key can be inferred.
 def test_create_survey_dataset_join_key_fallback_and_errors():
     # join_key_questions invalid but inferable
     questions = CSVFile(
@@ -164,6 +167,7 @@ def test_create_survey_dataset_join_key_fallback_and_errors():
     assert "Unable to infer join key" in cmd_err.update["messages"][0].content
 
 
+# create_survey_dataset: auto-detects wide responses and switches modes when wide columns are present.
 def test_create_survey_dataset_long_switches_to_wide_when_detected():
     questions = CSVFile(
         id="q",
@@ -188,6 +192,7 @@ def test_create_survey_dataset_long_switches_to_wide_when_detected():
     assert ds.response_question_columns == ["Q1"]
 
 
+# create_survey_dataset: join_key_responses fallback behavior and explicit error when response join key is missing.
 def test_create_survey_dataset_response_join_key_fallback_and_missing_error():
     questions = CSVFile(
         id="q",
@@ -224,11 +229,13 @@ def test_create_survey_dataset_response_join_key_fallback_and_missing_error():
     assert "missing join key" in cmd_err.update["messages"][0].content.lower()
 
 
+# extract_survey_insights: returns a friendly message (and no insights) when the dataset id is missing.
 def test_extract_survey_insights_dataset_not_found_returns_message():
     cmd = extract_survey_insights.func(dataset_id="missing", state={"datasets": []}, runtime=_Runtime())
     assert "No dataset found" in cmd.update["messages"][0].content
 
 
+# extract_survey_insights (wide): enforces caps within a row and skips missing/empty response cells.
 def test_extract_survey_insights_wide_caps_within_row_and_skips_missing_and_empty_cells():
     questions = CSVFile(
         id="q",
@@ -272,6 +279,7 @@ def test_extract_survey_insights_wide_caps_within_row_and_skips_missing_and_empt
     assert ev["column"] in {"Q1", "Q2"}
 
 
+# extract_survey_insights (long): tolerates missing question lookup tables and skips malformed/empty rows.
 def test_extract_survey_insights_long_handles_missing_question_lookup_and_skips_bad_rows():
     # join_key_questions is empty => q_lookup stays empty, and we should not filter by q_lookup membership.
     questions = CSVFile(id="q", columns=["question_id"], rows=[{"question_id": "Q1"}], label="questions")

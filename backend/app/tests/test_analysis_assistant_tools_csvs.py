@@ -7,6 +7,7 @@ from app.domains.analysis_assistant.tools.listCSVs import list_csvs
 from app.domains.analysis_assistant.tools.sampleRows import sample_rows
 
 
+# sample_rows tool: returns a structured error object when the csv_id is unknown.
 def test_sample_rows_missing_csv_returns_error_object():
     out = sample_rows.func(csv_id="missing", state={"csv_data": []}, n=5)
     assert out["csv_id"] == "missing"
@@ -14,6 +15,7 @@ def test_sample_rows_missing_csv_returns_error_object():
     assert "not found" in out["error"].lower()
 
 
+# sample_rows tool: clamps `n` (negative/None/too large) and returns a deterministic list slice.
 def test_sample_rows_clamps_n_and_returns_list_sample():
     csv_file = CSVFile(
         id="c1",
@@ -36,6 +38,7 @@ def test_sample_rows_clamps_n_and_returns_list_sample():
     assert sample_rows.func(csv_id="c1", state=state, n=999) == [{"a": 1}, {"a": 2}, {"a": 3}]
 
 
+# describe_csv tool: handles missing CSV ids and returns basic shape metadata for existing CSVs.
 def test_describe_csv_missing_and_success():
     csv_file = CSVFile(id="c1", columns=["a", "b"], rows=[{"a": 1, "b": 2}], label=None)
     state = {"csv_data": [csv_file]}
@@ -51,6 +54,7 @@ def test_describe_csv_missing_and_success():
     assert ok["columns"] == ["a", "b"]
 
 
+# list_csvs tool: formats one line per CSV with row/column counts.
 def test_list_csvs_formats_each_csv_on_new_line():
     c1 = CSVFile(id="c1", columns=["a"], rows=[{"a": 1}], label=None)
     c2 = CSVFile(id="c2", columns=["a", "b"], rows=[{"a": 1, "b": 2}, {"a": 3, "b": 4}], label=None)
@@ -65,6 +69,7 @@ def test_list_csvs_formats_each_csv_on_new_line():
     assert "2 columns" in lines[1]
 
 
+# label_csv tool: sets explicit labels and validates infer_label_for_csv heuristics for common schemas.
 def test_label_csv_sets_label_and_infer_label_heuristics():
     q_csv = CSVFile(
         id="q",
@@ -87,6 +92,7 @@ def test_label_csv_sets_label_and_infer_label_heuristics():
     assert label_csv.func(csv_id="missing", label="x", state=state) == "CSV not found"
 
 
+# infer_label_for_csv: covers additional heuristic branches (question-ish intersection, unknown shape).
 def test_label_csv_infer_label_additional_branches():
     # questionish intersection branch (>=3 question-ish columns)
     qish = CSVFile(id="qish", columns=["question_id", "scale_min", "scale_max"], rows=[], label=None)

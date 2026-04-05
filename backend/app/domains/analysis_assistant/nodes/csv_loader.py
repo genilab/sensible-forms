@@ -30,6 +30,6 @@ def csv_loader(state: State):
     return {
         "csv_data": existing + [csv_file],
         "csv_text": None,
-        "mode": "upload",
+        "mode": "upload",   # Set mode to 'upload' to indicate we're in an upload flow, which can influence routing and node behavior downstream.
         "last_uploaded_csv_id": csv_file.id,
     }

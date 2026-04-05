@@ -27,10 +27,8 @@ def build_graph(*, llm: LLMClient, checkpointer=None):
         make_ingestion_orchestrator_node,
     )
     from app.domains.analysis_assistant.nodes.routing import (
-        route,
+        route_entry,
         route_after_chatbot,
-        route_after_ingestion,
-        route_after_tool_node,
     )
     from app.domains.analysis_assistant.nodes.tools import tools
     from app.domains.analysis_assistant.nodes.upload_ack import upload_ack
@@ -43,37 +41,23 @@ def build_graph(*, llm: LLMClient, checkpointer=None):
     builder.add_node("chatbot", make_chatbot_node(llm))
     builder.add_node("upload_ack", upload_ack)
 
-    # Route: either ingest a freshly uploaded CSV blob, or just chat.
+    # Route_entry: Begin by either ingesting a freshly uploaded CSV blob, or just chatting.
     builder.add_conditional_edges(
         START,
-        route,
+        route_entry,
         {
             "csv_loader": "csv_loader",
             "chatbot": "chatbot",
         },
     )
 
-    # CSV ingestion pipeline: orchestrate -> (tools?) -> chatbot
+    # CSV ingestion pipeline: loader -> orchestrator -> upload acknowledgement
     builder.add_edge("csv_loader", "ingestion_orchestrator")
-    builder.add_conditional_edges(
-        "ingestion_orchestrator",
-        route_after_ingestion,
-        {
-            "tool_node": "tool_node",
-            "upload_ack": "upload_ack",
-            "chatbot": "chatbot",
-        },
-    )
-    builder.add_conditional_edges(
-        "tool_node",
-        route_after_tool_node,
-        {
-            "upload_ack": "upload_ack",
-            "chatbot": "chatbot",
-        },
-    )
+    builder.add_edge("ingestion_orchestrator", "upload_ack")
+    builder.add_edge("upload_ack", _END)    # Upload acknowledgement is always terminal.
 
-    # Chat pipeline: chatbot -> (tools?) -> end
+
+    # Chat pipeline: chatbot -> (tools?) -> chatbot -> (tools?.../end)
     builder.add_conditional_edges(
         "chatbot",
         route_after_chatbot,
@@ -82,8 +66,6 @@ def build_graph(*, llm: LLMClient, checkpointer=None):
             _END: _END,
         },
     )
-
-    # Upload acknowledgement is always terminal.
-    builder.add_edge("upload_ack", _END)
+    builder.add_edge("tool_node", "chatbot")
 
     return builder.compile(checkpointer=checkpointer)

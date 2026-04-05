@@ -7,6 +7,7 @@ from app.domains.analysis_assistant.structs.csvFile import CSVFile
 from app.domains.analysis_assistant.structs.surveyDataset import SurveyDataset
 
 
+# Upload acknowledgement: suppresses adding an upload ack when the last AI message is plain text (non-upload).
 def test_upload_ack_suppresses_ack_when_last_ai_is_non_upload_plain_text():
     out = upload_ack(
         {
@@ -21,6 +22,7 @@ def test_upload_ack_suppresses_ack_when_last_ai_is_non_upload_plain_text():
     assert "messages" not in out
 
 
+# Upload acknowledgement: builds a summary listing CSVs, unlabeled files, and dataset readiness.
 def test_upload_ack_builds_ack_with_multiple_files_unlabeled_and_dataset_ready():
     c1 = CSVFile(id="c1", columns=["a"], rows=[{"a": 1}], label=None)
     c2 = CSVFile(id="c2", columns=["b"], rows=[{"b": 2}], label="responses")
@@ -60,6 +62,7 @@ def test_upload_ack_builds_ack_with_multiple_files_unlabeled_and_dataset_ready()
     assert "Dataset ready" in text
 
 
+# Upload acknowledgement: suggests linking into a dataset when multiple files exist but no dataset is created yet.
 def test_upload_ack_suggests_linking_when_two_files_and_no_dataset():
     c1 = CSVFile(id="c1", columns=["a"], rows=[{"a": 1}], label="questions")
     c2 = CSVFile(id="c2", columns=["b"], rows=[{"b": 2}], label="responses")
@@ -78,6 +81,7 @@ def test_upload_ack_suggests_linking_when_two_files_and_no_dataset():
     assert "link them into a dataset" in text
 
 
+# Upload acknowledgement: avoids duplicating the ack when the same upload id was already acknowledged.
 def test_upload_ack_suppresses_duplicate_ack_for_same_upload_id():
     c1 = CSVFile(id="csv_1", columns=["a"], rows=[{"a": 1}], label=None)
     out = upload_ack(

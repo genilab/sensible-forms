@@ -14,6 +14,7 @@ from app.domains.analysis_assistant.tools.utils.question_resolve import resolve_
 from app.domains.analysis_assistant.structs.csvFile import CSVFile
 
 
+# try_parse_float: handles ints/floats and common string encodings (commas, percents, scale labels).
 def test_try_parse_float_handles_common_cases():
     assert try_parse_float(None) is None
     assert try_parse_float(4) == 4.0
@@ -29,6 +30,7 @@ def test_try_parse_float_handles_common_cases():
     assert try_parse_float("nope") is None
 
 
+# score_response_summary: rewards context (question row/field) and penalizes non-answers; stays within [0,1].
 def test_score_response_summary_rewards_question_row_and_penalizes_non_answers():
     baseline = score_response_summary(response_value="Yes", question_row=None, source_field=None, is_wide=False)
 
@@ -52,6 +54,7 @@ def test_score_response_summary_rewards_question_row_and_penalizes_non_answers()
     assert 0.0 <= non_answer <= 1.0
 
 
+# score_numeric_aggregation: increases with sample size/coverage and treats mean/median as more reliable than min/max.
 def test_score_numeric_aggregation_behaves_sensibly():
     none = score_numeric_aggregation(numeric_count=0, row_count=10, operation="mean")
     assert none == 0.05
@@ -65,6 +68,7 @@ def test_score_numeric_aggregation_behaves_sensibly():
     assert mean_score >= min_score
 
 
+# score_categorical_distribution: increases with non-empty samples and cross-file consistency.
 def test_score_categorical_distribution_increases_with_samples_and_consistency():
     none = score_categorical_distribution(
         non_empty_count=0,
@@ -92,6 +96,7 @@ def test_score_categorical_distribution_increases_with_samples_and_consistency()
     assert high > low
 
 
+# find_question_id_column: prefers a small priority set of common id column names.
 def test_find_question_id_column_prefers_priority_names():
     assert find_question_id_column(["qid", "x"]) == "qid"
     assert find_question_id_column(["question_id"]) == "question_id"
@@ -99,6 +104,7 @@ def test_find_question_id_column_prefers_priority_names():
     assert find_question_id_column(["something_else"]) is None
 
 
+# detect_wide_response_columns: uses intersection when possible, otherwise falls back to union.
 def test_detect_wide_response_columns_intersection_then_union_fallback():
     questions = CSVFile(
         id="q",
@@ -123,6 +129,7 @@ def test_detect_wide_response_columns_intersection_then_union_fallback():
     assert detect_wide_response_columns(questions, [r3, r4]) == ["Q1", "Q3"]
 
 
+# resolve_question_id: resolves exact/case-insensitive/numeric references conservatively and avoids ambiguous remaps.
 def test_resolve_question_id_is_conservative():
     known = {"Q1", "q2", "Question 3"}
 
@@ -140,6 +147,7 @@ def test_resolve_question_id_is_conservative():
     assert resolve_question_id(user_ref="1", known_ids=ambiguous) == "1"
 
 
+# resolve_question_id: covers whitespace input, non-matching strings, and preferred short-form numeric resolution.
 def test_resolve_question_id_additional_branches():
     # Empty/whitespace input
     assert resolve_question_id(user_ref="   ", known_ids={"Q1"}) == ""

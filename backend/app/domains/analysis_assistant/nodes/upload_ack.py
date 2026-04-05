@@ -30,8 +30,21 @@ def upload_ack(state: State):
         (m for m in reversed(messages or []) if isinstance(m, HumanMessage)), None
     )
     last_user_prompt = (
-        last_human_msg.content if last_human_msg is not None else state.get("last_user_prompt")
+        last_human_msg.content if last_human_msg is not None else state.get("last_user_prompt") # (Fallback) Last user prompt may be in state due to checkpointing, if this is not the first run of the graph for this thread.
     )
+
+    last_id = state.get("last_uploaded_csv_id")
+    last_csv = next((c for c in csv_data if c.id == last_id), None)
+    if last_csv is None and csv_data:
+        last_csv = csv_data[-1]
+
+    # If upstream already emitted a plain-text AI message and we don't have a
+    # concrete uploaded CSV to acknowledge, don't append an acknowledgement that
+    # would hide that message.
+    if last_csv is None and messages:
+        last_message = messages[-1]
+        if isinstance(last_message, AIMessage) and not getattr(last_message, "tool_calls", None):
+            return {"mode": None, "last_user_prompt": last_user_prompt}
 
     # If we've already acknowledged *this exact upload id* (e.g., due to retries),
     # don't append another acknowledgement.
@@ -39,17 +52,12 @@ def upload_ack(state: State):
     # Important nuance with checkpointing: `messages` contains prior runs. We must NOT
     # suppress acknowledgements just because the last AI message is some earlier chat
     # response (which would cause the API to re-surface that old message).
-    last_id = state.get("last_uploaded_csv_id")
     if last_id and messages:
         last_message = messages[-1]
         if isinstance(last_message, AIMessage) and not getattr(last_message, "tool_calls", None):
             content = getattr(last_message, "content", None)
             if isinstance(content, str) and ("uploaded" in content.lower()) and (last_id in content):
                 return {"mode": None, "last_user_prompt": last_user_prompt}
-
-    last_csv = next((c for c in csv_data if c.id == last_id), None)
-    if last_csv is None and csv_data:
-        last_csv = csv_data[-1]
 
     label = getattr(last_csv, "label", None) if last_csv else None
     label_display = label or "Unlabeled CSV"

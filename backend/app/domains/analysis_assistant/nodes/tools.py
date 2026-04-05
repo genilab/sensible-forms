@@ -16,10 +16,8 @@ from app.domains.analysis_assistant.tools.describeCSVs import describe_csv
 from app.domains.analysis_assistant.tools.extractSurveyInsights import extract_survey_insights
 from app.domains.analysis_assistant.tools.labelCSV import label_csv
 from app.domains.analysis_assistant.tools.listCSVs import list_csvs
-from app.domains.analysis_assistant.tools.numAggregation import (
-    aggregate_column,
-    aggregate_column_multi,
-)
+from app.domains.analysis_assistant.tools.aggregateColumn import aggregate_column
+from app.domains.analysis_assistant.tools.aggregateColumnMulti import aggregate_column_multi
 from app.domains.analysis_assistant.tools.sampleRows import sample_rows
 
 

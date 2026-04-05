@@ -1,129 +1,33 @@
+from __future__ import annotations
+
+import math
+import statistics
+from typing import Annotated
+
 from langchain.tools import tool
 from langgraph.prebuilt import InjectedState
-from typing import Annotated
-import statistics
-import math
 
-from app.domains.analysis_assistant.tools.utils.confidence import score_numeric_aggregation
+from app.domains.analysis_assistant.tools.utils.confidence import (
+    MAXIMUM_CONFIDENCE_SCORE,
+    MINIMUM_CONFIDENCE_SCORE,
+    score_numeric_aggregation,
+)
 from app.domains.analysis_assistant.tools.utils.number_parse import try_parse_float
-
-@tool
-def aggregate_column(
-    csv_id: str,
-    column: str,
-    operation: str,
-    state: Annotated[dict, InjectedState],
-):
-    """Aggregate a numeric column (mean, median, min, max)."""
-    csv_data = state.get("csv_data") or []
-    csv = next((c for c in csv_data if c.id == csv_id), None)
-    if csv is None:
-        return {
-            "csv_id": csv_id,
-            "column": column,
-            "operation": operation,
-            "result": None,
-            "error": f"CSV '{csv_id}' not found.",
-        }
-
-    if column not in (csv.columns or []):
-        return {
-            "csv_id": csv_id,
-            "column": column,
-            "operation": operation,
-            "result": None,
-            "error": f"Column '{column}' not found in CSV '{csv_id}'.",
-        }
-
-    values = []
-
-    for v in csv.column_values(column):
-        parsed = try_parse_float(v)
-        if parsed is None:
-            continue
-        values.append(parsed)
-
-    ops = {
-        "mean": statistics.mean,
-        "median": statistics.median,
-        "min": min,
-        "max": max,
-    }
-
-    op = (operation or "").strip().lower()
-    if op not in ops:
-        return {
-            "csv_id": csv_id,
-            "column": column,
-            "operation": operation,
-            "result": None,
-            "error": f"Unsupported operation '{operation}'. Choose one of: {', '.join(sorted(ops.keys()))}.",
-        }
-
-    if not values:
-        row_count = getattr(csv, "num_rows", None)
-        return {
-            "csv_id": csv_id,
-            "column": column,
-            "operation": op,
-            "result": None,
-            "error": "No numeric values found for the requested column.",
-            "confidence": score_numeric_aggregation(
-                numeric_count=0,
-                row_count=row_count,
-                operation=op,
-            ),
-            "stats": {
-                "numeric_count": 0,
-                "row_count": row_count,
-            },
-        }
-
-    row_count = getattr(csv, "num_rows", None)
-    numeric_count = len(values)
-
-    stats = {
-        "numeric_count": numeric_count,
-        "row_count": row_count,
-    }
-
-    # Provide additional stats to support downstream insighting.
-    # (Safe, deterministic; does not change the main "result" contract.)
-    try:
-        stats["min"] = min(values)
-        stats["max"] = max(values)
-        stats["mean"] = statistics.mean(values)
-        if numeric_count >= 2:
-            stats["stdev"] = statistics.stdev(values)
-    except Exception:
-        pass
-
-    return {
-        "csv_id": csv_id,
-        "column": column,
-        "operation": op,
-        "result": ops[op](values),
-        "confidence": score_numeric_aggregation(
-            numeric_count=numeric_count,
-            row_count=row_count,
-            operation=op,
-        ),
-        "stats": stats,
-    }
+from app.domains.analysis_assistant.tools.utils.weighted_stats import weighted_mean, weighted_variance
 
 
-def _weighted_mean(pairs: list[tuple[float, float]]) -> float:
-    total_w = sum(w for _, w in pairs)
-    if total_w <= 0:
-        return 0.0
-    return sum(x * w for x, w in pairs) / total_w
+# Numeric stability / confidence tuning constants.
+_VARIANCE_FLOOR = 0.0
+_DENOMINATOR_FLOOR = 1.0
+_CONSISTENCY_SCORE_DEFAULT = 1.0
 
+# How strongly to down-weight pooled confidence when per-file results disagree.
+_CONSISTENCY_BLEND_BASE = 0.60
+_CONSISTENCY_BLEND_WEIGHT = 0.40
 
-def _weighted_variance(pairs: list[tuple[float, float]], mean: float) -> float:
-    total_w = sum(w for _, w in pairs)
-    if total_w <= 0:
-        return 0.0
-    return sum(w * (x - mean) ** 2 for x, w in pairs) / total_w
+# Scale for converting heterogeneity into a (0,1] consistency score.
+# Smaller => harsher penalty for disagreement.
+_HETEROGENEITY_DECAY_SCALE = 0.25
 
 
 @tool
@@ -133,14 +37,32 @@ def aggregate_column_multi(
     operation: str,
     state: Annotated[dict, InjectedState],
 ):
-    """Aggregate a numeric column across multiple CSVs (mean, median, min, max).
+    """Aggregate a numeric column across multiple CSVs (mean/median/min/max).
+
+    This tool:
+    - validates that all referenced CSV ids exist in ``state["csv_data"]``
+    - validates that the requested column exists in all CSVs
+    - parses numeric values using ``try_parse_float`` (skipping non-numeric)
+    - computes a pooled result across all parsed values
+    - produces per-file results/stats and a confidence score
+
+    Confidence combines:
+    - base confidence from ``score_numeric_aggregation`` (coverage/sample size)
+    - an optional cross-file consistency penalty for mean/median when per-file
+      metrics disagree
+
+    Args:
+        csv_ids: List of CSV ids to aggregate.
+        column: Column name that must exist in all CSVs.
+        operation: One of ``mean``, ``median``, ``min``, ``max``.
+        state: LangGraph-injected state dict containing ``csv_data``.
 
     Returns:
-    - pooled result across all values
-    - per-file results/stats
-    - confidence that accounts for sample size/coverage and cross-file consistency
+        A dict containing pooled ``result``, ``confidence``, and a ``stats`` payload.
+        On failure, returns a dict with ``error`` populated and ``result`` set to ``None``.
     """
 
+    # ---- 1) Normalize inputs and validate CSV ids exist ----
     ids = [c for c in (csv_ids or []) if c]
     if not ids:
         return {
@@ -151,6 +73,7 @@ def aggregate_column_multi(
             "error": "No csv_ids provided.",
         }
 
+    # Index all known CSVs for fast lookup.
     csv_data = state.get("csv_data") or []
     csv_lookup = {c.id: c for c in csv_data}
     missing = [cid for cid in ids if cid not in csv_lookup]
@@ -163,6 +86,7 @@ def aggregate_column_multi(
             "error": f"CSV(s) not found: {', '.join(missing)}",
         }
 
+    # ---- 2) Validate requested aggregation operation ----
     ops = {
         "mean": statistics.mean,
         "median": statistics.median,
@@ -179,7 +103,7 @@ def aggregate_column_multi(
             "error": f"Unsupported operation '{operation}'. Choose one of: {', '.join(sorted(ops.keys()))}.",
         }
 
-    # Strict validation: ensure the column exists in all CSVs
+    # ---- 3) Strict column validation across all CSVs (multi-file aggregation assumes same schema) ----
     missing_cols = [cid for cid in ids if column not in (csv_lookup[cid].columns or [])]
     if missing_cols:
         return {
@@ -190,6 +114,7 @@ def aggregate_column_multi(
             "error": f"Column '{column}' missing from CSV(s): {', '.join(missing_cols)}",
         }
 
+    # ---- 4) Collect numeric values per file and build per-file stats ----
     pooled_values: list[float] = []
     per_file: list[dict] = []
     total_row_count = 0
@@ -239,6 +164,7 @@ def aggregate_column_multi(
             }
         )
 
+    # ---- 5) If nothing usable was found across all files, return error + diagnostics ----
     if not pooled_values:
         return {
             "csv_ids": ids,
@@ -260,6 +186,7 @@ def aggregate_column_multi(
             },
         }
 
+    # ---- 6) Compute pooled aggregation + base confidence from coverage/sample size ----
     pooled_result = ops[op](pooled_values)
     pooled_conf = score_numeric_aggregation(
         numeric_count=total_numeric_count,
@@ -267,7 +194,7 @@ def aggregate_column_multi(
         operation=op,
     )
 
-    # Cross-file consistency: compare per-file metrics for mean/median.
+    # ---- 7) Cross-file consistency adjustment ----
     metric_pairs: list[tuple[float, float]] = []
     files_with_numeric = 0
     for item in per_file:
@@ -277,22 +204,21 @@ def aggregate_column_multi(
             files_with_numeric += 1
             metric_pairs.append((float(r), float(n)))
 
-    consistency_score = 1.0
+    consistency_score = _CONSISTENCY_SCORE_DEFAULT
     heterogeneity = None
     if op in {"mean", "median"} and len(metric_pairs) >= 2:
-        m = _weighted_mean(metric_pairs)
-        var = _weighted_variance(metric_pairs, m)
-        stdev = math.sqrt(max(0.0, var))
-        denom = max(1.0, abs(m))
+        m = weighted_mean(metric_pairs)
+        var = weighted_variance(metric_pairs, m)
+        stdev = math.sqrt(max(_VARIANCE_FLOOR, var))
+        denom = max(_DENOMINATOR_FLOOR, abs(m))
         heterogeneity = stdev / denom
-        # Map heterogeneity -> [0,1], higher is better.
-        # het=0.0 -> 1.0; het=0.25 -> ~0.37; het=0.10 -> ~0.67
-        consistency_score = math.exp(-heterogeneity / 0.25)
+        consistency_score = math.exp(-heterogeneity / _HETEROGENEITY_DECAY_SCALE)
 
-    # Blend: don't over-penalize disagreement, but reflect it.
-    final_conf = pooled_conf * (0.60 + 0.40 * consistency_score)
-    final_conf = min(0.95, max(0.05, final_conf))
+    # ---- 8) Blend base confidence with consistency score; clamp to avoid extremes ----
+    final_conf = pooled_conf * (_CONSISTENCY_BLEND_BASE + _CONSISTENCY_BLEND_WEIGHT * consistency_score)
+    final_conf = min(MAXIMUM_CONFIDENCE_SCORE, max(MINIMUM_CONFIDENCE_SCORE, final_conf))
 
+    # ---- 9) Build statistics payload and return results ----
     stats = {
         "numeric_count": total_numeric_count,
         "row_count": total_row_count or None,

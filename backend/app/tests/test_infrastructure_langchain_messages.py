@@ -9,6 +9,7 @@ from app.infrastructure.llm.langchain_messages import (
 )
 
 
+# langchain_messages: string input becomes a single HumanMessage.
 def test_to_langchain_messages_from_string_creates_human_message():
     out = to_langchain_messages("hello")
     assert len(out) == 1
@@ -16,6 +17,7 @@ def test_to_langchain_messages_from_string_creates_human_message():
     assert out[0].content == "hello"
 
 
+# langchain_messages: dict-role conversion supports common role aliases and defaults unknown/missing roles to user.
 def test_to_langchain_messages_from_list_of_dicts_converts_roles_and_defaults():
     out = to_langchain_messages(
         [
@@ -47,6 +49,7 @@ def test_to_langchain_messages_from_list_of_dicts_converts_roles_and_defaults():
     assert out[6].content == ""  # content None coerces to empty string
 
 
+# langchain_messages: mixed lists keep existing non-dict message objects unchanged.
 def test_to_langchain_messages_mixed_list_keeps_non_dict_items_as_is():
     existing = SystemMessage(content="s")
     sentinel = object()
@@ -58,6 +61,7 @@ def test_to_langchain_messages_mixed_list_keeps_non_dict_items_as_is():
     assert out[2].content == "u"
 
 
+# langchain_messages: non-list, non-str input is stringified into a HumanMessage.
 def test_to_langchain_messages_non_list_non_str_falls_back_to_stringified_human_message():
     out = to_langchain_messages(123)
     assert len(out) == 1
@@ -65,6 +69,7 @@ def test_to_langchain_messages_non_list_non_str_falls_back_to_stringified_human_
     assert out[0].content == "123"
 
 
+# ensure_last_human_message: no-op when already ending with HumanMessage.
 def test_ensure_last_human_message_returns_same_list_when_already_last_human():
     msgs = [SystemMessage(content="s"), HumanMessage(content="u")]
     out = ensure_last_human_message(msgs)
@@ -72,6 +77,7 @@ def test_ensure_last_human_message_returns_same_list_when_already_last_human():
     assert isinstance(out[-1], HumanMessage)
 
 
+# ensure_last_human_message: moves the last human message to the end when the list ends with non-human.
 def test_ensure_last_human_message_moves_last_human_to_end_when_needed():
     # Last message is AI, but there's a human earlier.
     h1 = HumanMessage(content="first-user")
@@ -86,6 +92,7 @@ def test_ensure_last_human_message_moves_last_human_to_end_when_needed():
     assert out[:-1] == [a1, s1]
 
 
+# ensure_last_human_message: appends a HumanMessage when none exists, choosing last_user_prompt or fallback.
 @pytest.mark.parametrize(
     "last_user_prompt,fallback_prompt,expected",
     [

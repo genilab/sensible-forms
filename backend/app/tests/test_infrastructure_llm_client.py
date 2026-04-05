@@ -29,6 +29,7 @@ class CapturingClient(LLMClient):
         return "ok"
 
 
+    # LLMClient.invoke_llm: forwards config and arbitrary kwargs down to the provider invoke method.
 def test_invoke_llm_forwards_config_and_kwargs():
     client = CapturingClient()
 
@@ -46,6 +47,7 @@ def test_invoke_llm_forwards_config_and_kwargs():
     assert client.last_call["kwargs"]["extra"] == "value"
 
 
+# LLMClient.invoke_llm: forwards temperature and max_output_tokens when explicitly provided.
 def test_invoke_llm_sets_temperature_and_max_output_tokens_when_provided():
     client = CapturingClient()
 
@@ -59,6 +61,7 @@ def test_invoke_llm_sets_temperature_and_max_output_tokens_when_provided():
     assert client.last_call["max_output_tokens"] == 50
 
 
+# LLMClient.invoke_llm: does not override provider defaults when wrapper params are None.
 def test_invoke_llm_does_not_override_defaults_when_none():
     client = CapturingClient()
 
@@ -70,6 +73,7 @@ def test_invoke_llm_does_not_override_defaults_when_none():
     assert client.last_call["max_output_tokens"] is None
 
 
+# LLMClient.invoke_llm: supports forwarding both max_tokens and max_output_tokens together.
 def test_invoke_llm_can_forward_max_tokens_and_max_output_tokens_together():
     client = CapturingClient()
 
@@ -85,6 +89,7 @@ def test_invoke_llm_can_forward_max_tokens_and_max_output_tokens_together():
     assert client.last_call["max_tokens"] == 7
 
 
+# LLMClient.invoke: base class method body raises NotImplementedError (abstract-ish contract).
 def test_base_invoke_raises_not_implemented_error():
     # Can't instantiate LLMClient directly (abstract), but we can still
     # exercise the base method body to cover the explicit raise.

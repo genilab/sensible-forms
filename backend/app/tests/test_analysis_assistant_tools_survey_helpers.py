@@ -9,6 +9,7 @@ from app.domains.analysis_assistant.tools.utils.survey_helpers import (
 )
 
 
+# survey_helpers: resolves question text from the questions CSV and enumerates known question ids.
 def test_survey_helpers_resolve_question_text_and_known_ids():
     questions = CSVFile(
         id="q",
@@ -38,6 +39,7 @@ def test_survey_helpers_resolve_question_text_and_known_ids():
     assert "Q2" in ids
 
 
+# extract_long_response_value: prefers standard long-format response fields in priority order.
 def test_extract_long_response_value_prefers_standard_fields():
     assert extract_long_response_value({"answer": "x"}) == ("answer", "x")
     assert extract_long_response_value({"value": 10}) == ("value", 10)

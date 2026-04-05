@@ -18,6 +18,7 @@ class _CapturingLLM:
         return AIMessage(content="ok")
 
 
+# Fake LLM used to simulate provider failures (e.g., rate limiting).
 class _FailingLLM:
     def __init__(self, msg: str):
         self._msg = msg
@@ -26,6 +27,7 @@ class _FailingLLM:
         raise Exception(self._msg)
 
 
+# Chatbot node: injects a system context message and ensures the last prompt sent to the provider is Human.
 def test_chatbot_injects_system_context_and_ensures_human_last():
     llm = _CapturingLLM()
     chatbot = make_chatbot_node(llm)
@@ -71,6 +73,7 @@ def test_chatbot_injects_system_context_and_ensures_human_last():
     assert isinstance(llm.last_messages[-1], HumanMessage)
 
 
+# Chatbot node: maps provider rate-limit exceptions to a friendly user message.
 def test_chatbot_handles_rate_limit_exceptions():
     chatbot = make_chatbot_node(_FailingLLM("429 RESOURCE_EXHAUSTED"))
     out = chatbot({"messages": [HumanMessage(content="hi")], "csv_data": [], "datasets": []})
@@ -79,6 +82,7 @@ def test_chatbot_handles_rate_limit_exceptions():
     assert "rate-limited" in out["messages"][0].content
 
 
+# Chatbot node: prefers the last HumanMessage in history over a stale `last_user_prompt` field.
 def test_chatbot_prefers_last_human_message_for_last_user_prompt():
     llm = _CapturingLLM()
     chatbot = make_chatbot_node(llm)
