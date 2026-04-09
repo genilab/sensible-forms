@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your experience level in designing surveys?,choiceQuestion,Beginner;Intermediate;Expert,,,,,True
+Q2,"In your opinion, what is the most effective type of survey question (e.g., multiple choice, open-ended, rating scale)?",textQuestion,,,,,,False
+Q3,How often do you use skip logic or branching in your surveys?,choiceQuestion,Rarely;Sometimes;Frequently;Always,,,,,False
+Q4,"On a scale of 1 to 5, how important is mobile-friendliness in survey design?",scaleQuestion,,1.0,5.0,Not Important,Very Important,False
+Q5,What tools or software do you typically use to create and distribute surveys?,textQuestion,,,,,,False
+Q6,How do you ensure that your surveys are accessible to people with disabilities?,textQuestion,,,,,,False
+Q7,What strategies do you employ to maximize survey response rates?,textQuestion,,,,,,False
+Q8,How do you handle incomplete or partially answered surveys?,choiceQuestion,Discard them;Analyze them separately;Impute missing data,,,,,False
+Q9,What are your biggest challenges when designing surveys?,textQuestion,,,,,,False
+Q10,How do you measure the success of a survey?,textQuestion,,,,,,False

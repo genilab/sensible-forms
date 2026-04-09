@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite movie of all time?,textQuestion,,,,,,True
+Q2,How many times have you seen your favorite movie?,scaleQuestion,,1.0,10.0,,,False
+Q3,Who is your favorite actor or actress?,textQuestion,,,,,,False
+Q4,What genre of movies do you prefer?,choiceQuestion,Action;Comedy;Drama;Horror;Sci-Fi;Documentary;Other,,,,,False
+Q5,"On a scale of 1 to 5, how important is the director to you when choosing a movie to watch?",scaleQuestion,,1.0,5.0,,,False
+Q6,Do you prefer watching movies at home or in a theater?,choiceQuestion,Home;Theater;No Preference,,,,,False
+Q7,What movie soundtrack do you enjoy the most?,textQuestion,,,,,,False
+Q8,How often do you go to the movie theater?,choiceQuestion,Weekly;Monthly;A few times a year;Rarely;Never,,,,,False
+Q9,"Have you ever walked out of a movie? If so, which one and why?",textQuestion,,,,,,False
+Q10,What is your favorite movie quote?,textQuestion,,,,,,False

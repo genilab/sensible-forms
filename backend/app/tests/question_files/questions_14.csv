@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite vegetable and why?,textQuestion,,,,,,True
+Q2,How many servings of vegetables do you eat per day on average?,scaleQuestion,,0.0,5.0,,,False
+Q3,"On a scale of 1 to 5, how important is it to you that your vegetables are locally sourced?",scaleQuestion,,1.0,5.0,,,False
+Q4,"What is your least favorite vegetable, and what does it taste/feel like?",textQuestion,,,,,,False
+Q5,How often do you purchase organic vegetables?,choiceQuestion,Always;Often;Sometimes;Rarely;Never,,,,,False
+Q6,What is your preferred method of cooking vegetables?,textQuestion,,,,,,False
+Q7,Do you grow your own vegetables?,choiceQuestion,Yes;No,,,,,False
+Q8,What are the top three vegetables you would recommend to someone trying to eat healthier?,textQuestion,,,,,,False
+Q9,How much money do you spend on vegetables per week?,scaleQuestion,,0.0,10.0,,,False
+Q10,Are you satisfied with the variety of vegetables available at your local grocery store/market?,choiceQuestion,Yes;No;Somewhat,,,,,False

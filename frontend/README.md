@@ -18,14 +18,11 @@ From the repo root:
        - `OPENAI_API_KEY=...` (for OpenAI-compatible endpoints -- including OwlChat API, which can provide Gemini models...)
        - `GOOGLE_API_KEY=...` (for Gemini models accessed directly through Google AI Studio.)
        - (You may set both if your backend is configured to support multiple providers.)
-
-Start the API (pick one):
-
-- From `backend/`:
-   - `uvicorn app.main:app --reload`
-
-- From the repo root:
-    - `uvicorn app.main:app --app-dir backend --reload`
+4. Optional: enable Google Forms API calls. 
+  - Place `client_secrets.json` into backend directory
+5. Start the API (pick one):
+  - From repo root: `uvicorn app.main:app --app-dir backend --reload`
+  - From `backend/`: `uvicorn app.main:app --reload`
 
 ### 2) Frontend (Vite + React)
 
@@ -52,3 +49,4 @@ Windows note: if `npm install` is blocked by PowerShell execution policy, you ca
 - `POST /question-generation/`
 - `POST /form-deployment/deploy`
 - `POST /form-deployment/chat`
+- `GET /form-deployment/retrieve?formId=${formId}`

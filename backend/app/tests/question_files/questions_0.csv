@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What brand of phone do you currently use?,choiceQuestion,Apple; Samsung; Google; OnePlus; Other (please specify),,,,,True
+Q2,How satisfied are you with your current phone's battery life?,scaleQuestion,,1.0,5.0,Very Unsatisfied,Very Satisfied,False
+Q3,How often do you typically upgrade your phone?,choiceQuestion,Every year; Every 2 years; Every 3 years; Longer than 3 years; I don't upgrade,,,,,False
+Q4,What is the most important feature you look for when buying a new phone?,textQuestion,,,,,,False
+Q5,How likely are you to recommend your current phone to a friend or colleague?,scaleQuestion,,0.0,10.0,Not Likely at All,Extremely Likely,False
+Q6,"Have you ever experienced any issues with your current phone? If so, please describe.",textQuestion,,,,,,False
+Q7,How much storage space does your current phone have?,choiceQuestion,32 GB; 64 GB; 128 GB; 256 GB; 512 GB; 1 TB,,,,,False
+Q8,Do you use your phone more for personal or professional use?,choiceQuestion,Personal; Professional; Both equally,,,,,False
+Q9,What is your preferred method of securing your phone?,choiceQuestion,PIN; Password; Fingerprint; Face ID; None,,,,,False
+Q10,What new features would you like to see in future phones?,textQuestion,,,,,,False

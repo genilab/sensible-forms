@@ -37,3 +37,17 @@ export async function postMultipart(path, formData) {
 
   return await res.json();
 }
+
+export async function getJson(path) {
+  const res = await fetch(`${getApiBaseUrl()}${path}`, {
+    method: "GET",
+    headers: { "Acccept": "application/json" }
+  });
+
+  if (!res.ok) {
+    const detail = await res.text();
+    throw new Error(`HTTP ${res.status}: ${detail}`);
+  }
+
+  return await res.json()
+}

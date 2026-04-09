@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite pizza topping?,textQuestion,,,,,,True
+Q2,"On a scale of 1 to 5, how often do you eat pizza with your favorite topping?",scaleQuestion,,1.0,5.0,Rarely,Very Often,False
+Q3,"Besides your favorite, what is another pizza topping that you enjoy?",textQuestion,,,,,,False
+Q4,Do you prefer your favorite topping on a thin crust or thick crust pizza?,choiceQuestion,Thin Crust; Thick Crust; No Preference,,,,,False
+Q5,Have you ever tried your favorite topping on a pizza with a white sauce instead of tomato sauce?,choiceQuestion,Yes; No,,,,,False
+Q6,"If you could create a pizza with unlimited toppings, what would be your top three choices (besides your favorite)?",textQuestion,,,,,,False
+Q7,How important is the quality of your favorite topping when choosing a pizza?,scaleQuestion,,1.0,5.0,Not Important,Very Important,False
+Q8,Would you ever try a pizza with a combination of sweet and savory toppings?,choiceQuestion,Yes; No; Maybe,,,,,False
+Q9,What is your least favorite pizza topping and why?,textQuestion,,,,,,False
+Q10,How willing are you to try new and unusual pizza toppings?,scaleQuestion,,1.0,5.0,Not Willing,Very Willing,False

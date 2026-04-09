@@ -12,7 +12,7 @@
 // Example Code:
 import { useMemo, useState } from "react";
 
-import { sendDeploymentMessage, deploySurveyCsv } from "../services/formDeploymentService.js";
+import { sendDeploymentMessage, deployFormCsv, getFormResponses } from "../services/formDeploymentService.js";
 import { getOrCreateSessionId } from "../services/session.js";
 
 export default function FormDeployment() {
@@ -20,15 +20,16 @@ export default function FormDeployment() {
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
-			text:
-				"Upload your academic survey CSV, then chat with me about status (did it deploy?) or feedback (what needs fixing before deployment)."
+			text: "Upload your survey CSV, then chat with me about status (did it deploy?) or feedback (what needs fixing before deployment)."
 		}
 	]);
 	const [input, setInput] = useState("");
 	const [isSending, setIsSending] = useState(false);
-	const [isDeploying, setIsDeploying] = useState(false);
-	const [error, setError] = useState("");
 	const [selectedFile, setSelectedFile] = useState(null);
+	const [isDeploying, setIsDeploying] = useState(false);
+	const [formIdInput, setFormIdInput] = useState("");
+	const [isDownloading, setIsDownloading] = useState(false);
+	const [error, setError] = useState("");
 	const [lastDeployFilename, setLastDeployFilename] = useState(null);
 	const [lastDeployStatus, setLastDeployStatus] = useState(null);
 	const [lastDeployFeedback, setLastDeployFeedback] = useState(null);
@@ -65,7 +66,7 @@ export default function FormDeployment() {
 		setError("");
 		setIsDeploying(true);
 		try {
-			const res = await deploySurveyCsv(selectedFile);
+			const res = await deployFormCsv(selectedFile);
 			setMessages((prev) => [
 				...prev,
 				{
@@ -81,6 +82,37 @@ export default function FormDeployment() {
 			setError(err instanceof Error ? err.message : String(err));
 		} finally {
 			setIsDeploying(false);
+		}
+	}
+
+	async function onDownloadCSV() {
+		if (!formIdInput.trim()) return;
+		setError("")
+		setIsDownloading(true);
+		try {
+			const res = await getFormResponses(formIdInput);
+			setMessages((prev) => [
+				...prev,
+				{
+					role: "bot",
+					text: `Deterministic retrieve: ${res.status}\n${res.feedback}`
+				}
+			]);
+			if (res.status.trim() == "error") return;
+			const csvContent = res.content;
+			const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+			const url = URL.createObjectURL(blob);
+			const link = document.createElement("a");
+			link.setAttribute("href", url)
+			link.setAttribute("download", `responses_${formIdInput}.csv`);
+			//document.body.appendChild(link);
+			link.click();
+			//document.body.removeChild(link);
+			URL.revokeObjectURL(url);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : String(err));
+		} finally {
+			setIsDownloading(false);
 		}
 	}
 
@@ -136,11 +168,35 @@ export default function FormDeployment() {
 				</div>
 			) : null}
 
+			<div style={{ marginTop: 12}}>
+				<div className="small" style={{ marginBottom: 6 }}>
+					Retrieve Form Responses (via Form ID):
+				</div>
+				<div className="row">
+					<input
+						className="input"
+						placeholder="Enter Form ID..."
+						value={formIdInput}
+						onChange={(e) => setFormIdInput(e.target.value)}
+						disabled={isDownloading}
+					/>
+					<button
+						className="button"
+						type="button"
+						disabled={isDownloading || !formIdInput}
+						onClick={onDownloadCSV}
+					>
+						{isDownloading ? "Getting Response CSV..." : "Download CSV"}
+					</button>
+				</div>
+			</div>
+
 			{error ? (
 				<div className="small" style={{ marginTop: 8 }}>
 					Error: {error}
 				</div>
 			) : null}
+
 		</div>
 	);
 }
