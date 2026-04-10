@@ -38,7 +38,6 @@ def test_analysis_flow():
     assert len(body["insights"]) > 0
 
 
-<<<<<<< HEAD:backend/app/tests/test_api_smoke_flows.py
 # API: analysis endpoint accepts a chat-style messages payload.
 def test_analysis_flow_accepts_messages():
     r = client.post(
@@ -84,8 +83,6 @@ def test_form_deployment_flow():
 
 
 # API: uploads endpoint rejects non-CSV uploads.
-=======
->>>>>>> origin/main:backend/app/tests/test_example_flow.py
 def test_upload_flow_rejects_non_csv():
     files = {"file": ("not.csv.txt", b"abc", "text/plain")}
     r = client.post("/uploads/", files=files)
