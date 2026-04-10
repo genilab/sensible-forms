@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite dog breed overall?,choiceQuestion,German Shepherd;Labrador Retriever;Golden Retriever;French Bulldog;Poodle;Other (please specify),,,,,True
+Q2,Which of these breeds do you find most visually appealing?,choiceQuestion,Siberian Husky;Shiba Inu;Australian Shepherd;Bernese Mountain Dog;Samoyed;Other (please specify),,,,,True
+Q3,"If you were to get a small dog, which breed would you choose?",choiceQuestion,Chihuahua;Pomeranian;Dachshund;Shih Tzu;Yorkshire Terrier;Other (please specify),,,,,True
+Q4,Which breed do you think is the most intelligent?,choiceQuestion,Border Collie;German Shepherd;Poodle;Golden Retriever;Doberman Pinscher;Other (please specify),,,,,True
+Q5,Which breed do you think is the best with children?,choiceQuestion,Labrador Retriever;Golden Retriever;Beagle;Newfoundland;Irish Setter;Other (please specify),,,,,True
+Q6,Which of these breeds would be your choice for a guard dog?,choiceQuestion,Rottweiler;Doberman Pinscher;German Shepherd;Bullmastiff;Giant Schnauzer;Other (please specify),,,,,False
+Q7,Which of these breeds would you consider the most low-maintenance?,choiceQuestion,Greyhound;Chihuahua;Dachshund;Pug;Bichon Frise;Other (please specify),,,,,False
+Q8,Which sporting dog breed appeals to you the most?,choiceQuestion,Labrador Retriever;Golden Retriever;German Shorthaired Pointer;English Springer Spaniel;Cocker Spaniel;Other (please specify),,,,,False
+Q9,Which toy dog breed appeals to you the most?,choiceQuestion,Pomeranian;Maltese;Yorkshire Terrier;Cavalier King Charles Spaniel;Shih Tzu;Other (please specify),,,,,False
+Q10,Which of these breeds do you think is the most unique?,choiceQuestion,Basenji;Borzoi;Xoloitzcuintli;Puli;Norwegian Lundehund;Other (please specify),,,,,False

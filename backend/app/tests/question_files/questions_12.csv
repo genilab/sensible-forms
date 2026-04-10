@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite cat breed?,textQuestion,,,,,,True
+Q2,"On a scale of 1 to 5, with 1 being ""not at all"" and 5 being ""very much,"" how much do you like Persian cats?",scaleQuestion,,1.0,5.0,Not at all,Very much,False
+Q3,Have you ever owned a cat?,choiceQuestion,Yes;No,,,,,False
+Q4,"If you have owned a cat, what breed(s) was it?",textQuestion,,,,,,False
+Q5,What qualities do you look for in a cat breed?,textQuestion,,,,,,False
+Q6,Do you prefer long-haired or short-haired cats?,choiceQuestion,Long-haired;Short-haired;No preference,,,,,False
+Q7,"How would you rate the following cat breeds on a scale of 1 to 10, with 1 being ""least favorite"" and 10 being ""most favorite""?",ratingQuestion,,,,,,False
+Q8,"In your opinion, what is the most low-maintenance cat breed?",textQuestion,,,,,,False
+Q9,How important is the cat's origin when choosing a breed?,scaleQuestion,,1.0,5.0,Not important,Very important,False
+Q10,Is there anything else you'd like to share about your preferences regarding cat breeds?,textQuestion,,,,,,False

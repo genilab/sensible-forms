@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,How often do you consume fruits in a week?,textQuestion,,,,,,True
+Q2,What is your favorite fruit and why?,textQuestion,,,,,,False
+Q3,"Do you prefer eating fruits whole or in other forms (e.g., juice, smoothie)?",choiceQuestion,Whole;Juice;Smoothie,,,,,False
+Q4,"On a scale of 1 to 5, how important is fruit in your diet?",scaleQuestion,,1.0,5.0,Not Important,Very Important,False
+Q5,"Are there any fruits you dislike? If so, why?",textQuestion,,,,,,False
+Q6,How much money do you spend on fruits in a typical month?,textQuestion,,,,,,False
+Q7,What is your favorite season to eat fruit and why?,textQuestion,,,,,,False
+Q8,Do you think fruit is more of a snack or dessert?,choiceQuestion,Snack;Dessert,,,,,False
+Q9,Have you ever grown your own fruits?,choiceQuestion,Yes;No,,,,,False
+Q10,How would you rate the importance of organic fruit versus non-organic fruit?,scaleQuestion,,1.0,5.0,Not Important,Very Important,False

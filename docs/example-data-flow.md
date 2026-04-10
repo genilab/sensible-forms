@@ -17,6 +17,7 @@ Even if Gemini credentials are not configured, the backend remains runnable beca
 ### Special case: Form Deployment
 
 - `POST /form-deployment/deploy` is **deterministic**: validate CSV → return deterministic `{status, feedback}`.
+- `GET /form-deployment/retrieve?formId=${formId}` is **deterministic**: call API with formId → return deterministic `{formId, status, content}`
 - `POST /form-deployment/chat` is **LLM-assisted**: use the last deterministic result (if provided) to explain what went wrong / what to do next.
 
 ## Request/response contracts
@@ -42,8 +43,12 @@ The example frontend persists a UUID per page (domain) using `localStorage` (see
   - (Alias) Chat endpoint
 
 - `POST /form-deployment/deploy`
-  - Multipart form-data file upload (CSV only)
+  - Request: Multipart form-data file upload (CSV only)
   - Response: `{ "filename": string, "status": "success"|"error", "feedback": string }`
+
+- `GET /form-deployment/retrieve?formId=${formId}`
+  - Request: `{"formId": string}`
+  - Response: `{"content": JSON}`
 
 - `POST /form-deployment/chat`
   - Request: `{ "message": string, "session_id"?: string, "last_deploy_filename"?: string|null, "last_deploy_status"?: string|null, "last_deploy_feedback"?: string|null }`
@@ -110,6 +115,11 @@ sequenceDiagram
   SVC-->>API: {filename, status, feedback}
   API-->>UI: {filename, status, feedback}
 
+  UI->>API: GET /form-deployment/retrieve?formId=${formId} (formId: string)
+  API->>SVC: attempt_retrieve(formId)
+  SVC-->>API: {formId, status, content}
+  API-->>UI: {content}
+
   UI->>API: POST /form-deployment/chat {message, session_id?, last_deploy_*}
   API->>SVC: chat(FormDeploymentRequest)
   SVC->>AG: run(message, last_deploy_*)
@@ -130,7 +140,9 @@ sequenceDiagram
 3. Optional: enable real Gemini calls.
   - Install the optional dependency: `google-genai` (already listed in `requirements.txt`).
   - Set `GEMINI_API_KEY` in the repo-root `.env` file as `GOOGLE_API_KEY`.
-4. Start the API (pick one):
+4. Optional: enable Google Forms API calls. 
+  - Place `client_secrets.json` into backend directory
+5. Start the API (pick one):
   - From repo root: `uvicorn app.main:app --app-dir backend --reload`
   - From `backend/`: `uvicorn app.main:app --reload`
 
