@@ -13,16 +13,20 @@
 
 // Example Code:
 import { useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
-import { analyzeData } from "../services/analysisAssistant.js";
+import { chatAnalysis, uploadSurveyCsv } from "../services/analysisAssistant.js";
 import { getOrCreateSessionId } from "../services/session.js";
 
 export default function AnalysisAssistant() {
 	const sessionId = useMemo(() => getOrCreateSessionId("analysis_assistant_session_id"), []);
+	const [activeFileId, setActiveFileId] = useState("");
+	const [selectedFile, setSelectedFile] = useState(null);
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
-			text: "Paste a short dataset summary and I’ll return 3–5 insights. (Example-only; no file parsing here yet.)"
+			text: "You can chat with me right away (even before uploading). If you upload a Google Forms responses CSV, I can ground suggestions in your actual columns and compute basic exact stats."
 		}
 	]);
 	const [input, setInput] = useState("");
@@ -35,15 +39,48 @@ export default function AnalysisAssistant() {
 		e?.preventDefault?.();
 		if (!canSend) return;
 
-		const dataSummary = input.trim();
+		const userText = input.trim();
 		setInput("");
 		setError("");
 
-		setMessages((prev) => [...prev, { role: "user", text: dataSummary }]);
+		setMessages((prev) => [...prev, { role: "user", text: userText }]);
 		setIsLoading(true);
 		try {
-			const res = await analyzeData(dataSummary, sessionId);
-			setMessages((prev) => [...prev, { role: "bot", text: res.insights }]);
+			const res = await chatAnalysis({
+				message: userText,
+				session_id: sessionId,
+				file_id: activeFileId || undefined,
+				upload_mode: false
+			});
+			setMessages((prev) => [...prev, { role: "bot", text: res.message }]);
+		} catch (err) {
+			setError(err instanceof Error ? err.message : String(err));
+		} finally {
+			setIsLoading(false);
+		}
+	}
+
+	async function onUpload(e) {
+		e?.preventDefault?.();
+		setError("");
+		if (!selectedFile) return;
+
+		setIsLoading(true);
+		try {
+			const up = await uploadSurveyCsv(selectedFile);
+			setActiveFileId(up.file_id);
+			setMessages((prev) => [
+				...prev,
+				{ role: "user", text: `Uploaded: ${up.filename}` }
+			]);
+
+			const res = await chatAnalysis({
+				message: "",
+				session_id: sessionId,
+				file_id: up.file_id,
+				upload_mode: true
+			});
+			setMessages((prev) => [...prev, { role: "bot", text: res.message }]);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
 		} finally {
@@ -55,12 +92,31 @@ export default function AnalysisAssistant() {
 		<div>
 			<div style={{ fontWeight: 700, marginBottom: 8 }}>Analysis Assistant</div>
 			<div className="small" style={{ marginBottom: 12 }}>
-				Calls <code>POST /analysis/</code> → domain service → agent → LLM client.
+				Calls <code>POST /analysis/uploads</code> then <code>POST /analysis/chat</code>.
 			</div>
+
+			<form onSubmit={onUpload} className="row" style={{ marginBottom: 12 }}>
+				<input
+					className="input"
+					type="file"
+					accept=".csv,text/csv"
+					onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+					disabled={isLoading}
+				/>
+				<button className="button" type="submit" disabled={!selectedFile || isLoading}>
+					{isLoading ? "Uploading…" : "Upload CSV"}
+				</button>
+			</form>
 
 			<div className="chat" aria-live="polite">
 				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>{m.text}</div>
+					<div key={idx} className={`msg ${m.role}`}>
+						{m.role === "bot" ? (
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+						) : (
+							m.text
+						)}
+					</div>
 				))}
 			</div>
 
@@ -70,7 +126,7 @@ export default function AnalysisAssistant() {
 				<input
 					className="input"
 					value={input}
-					placeholder='Example: "N=42. Satisfaction avg 3.8/5. Drop-off after Q6."'
+					placeholder='Ask: "Summarize the dataset" or "What should I analyze next?"'
 					onChange={(e) => setInput(e.target.value)}
 					disabled={isLoading}
 				/>

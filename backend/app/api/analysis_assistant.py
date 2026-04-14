@@ -14,15 +14,15 @@ Contains HTTP-layer logic only.
 from fastapi import APIRouter
 from app.domains.analysis_assistant.service import AnalysisAssistantService
 from app.domains.analysis_assistant.schemas import (
-    AnalysisRequest,
-    AnalysisResponse,
+    AnalysisChatRequest,
+    AnalysisChatResponse,
 )
 from app.infrastructure.llm.factory import get_llm_client
 
 router = APIRouter(prefix="/analysis", tags=["Analysis Assistant"])
 
 
-@router.post("/", response_model=AnalysisResponse)
-def analyze(request: AnalysisRequest):
+@router.post("/chat", response_model=AnalysisChatResponse)
+def chat(request: AnalysisChatRequest):
     service = AnalysisAssistantService(get_llm_client())
-    return service.analyze(request)
+    return service.chat(request)
