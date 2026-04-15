@@ -128,6 +128,7 @@ class FormDeploymentService:
         return FormDeploymentDeployResponse(
             filename=filename,
             status="success",
+            formId=response["formId"],
             feedback=(
                 "Example deployment succeeded!\n"
                 f"Form ID: {response["formId"]}\n"

@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is the name of your favorite restaurant?,textQuestion,,,,,,True
-Q2,"On a scale of 1 to 5, with 1 being ""very poor"" and 5 being ""excellent,"" how would you rate the overall food quality at your favorite restaurant?",scaleQuestion,,1.0,5.0,Very Poor,Excellent,False
-Q3,How often do you typically visit your favorite restaurant?,choiceQuestion,Daily;Weekly;Monthly;Rarely,,,,,False
-Q4,What is your favorite dish to order at the restaurant?,textQuestion,,,,,,False
-Q5,How would you describe the ambiance of the restaurant?,textQuestion,,,,,,False
-Q6,How would you rate the service at the restaurant?,ratingQuestion,,,,,,False
-Q7,What is the price range of your average meal at the restaurant?,choiceQuestion,$1-10;$11-20;$21-30;$31+,,,,,False
-Q8,Would you recommend this restaurant to others? Why or why not?,textQuestion,,,,,,False
-Q9,Does the restaurant have a rewards program?,choiceQuestion,Yes;No;Unsure,,,,,False
-Q10,Do you think the restaurant is worth the money?,choiceQuestion,Yes;No,,,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What operating system do you primarily use?,choiceQuestion,Windows;MacOS;Linux;ChromeOS,,RADIO,,,,,True
+Q2,How satisfied are you with your current operating system?,scaleQuestion,,,,1.0,5.0,Not Satisfied,Very Satisfied,False
+Q3,How often do you encounter software compatibility issues with your operating system?,choiceQuestion,Frequently;Sometimes;Rarely;Never,,RADIO,,,,,False
+Q4,What is the most important feature you look for in an operating system?,textQuestion,,,,,,,,False
+Q5,Have you ever used Linux?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q6,How easy do you find it to troubleshoot problems with your operating system?,scaleQuestion,,,,1.0,5.0,Not easy,Very easy,False
+Q7,Do you prefer a desktop or mobile operating system?,choiceQuestion,Desktop;Mobile,,RADIO,,,,,False
+Q8,How familiar are you with the command line interface of your operating system?,scaleQuestion,,,,1.0,3.0,Not familiar,Very familiar,False
+Q9,"In your opinion, what is the biggest security risk associated with your operating system?",textQuestion,,,,,,,,False
+Q10,How often do you update your operating system?,choiceQuestion,Daily;Weekly;Monthly;Yearly,,RADIO,,,,,False

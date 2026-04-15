@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is your favorite burrito filling?,textQuestion,,,,,,True
-Q2,"On a scale of 1 to 5, how important is the quality of rice in your burrito?",scaleQuestion,,1.0,5.0,Not Important,Very Important,False
-Q3,"In your opinion, what is the most underrated burrito filling?",textQuestion,,,,,,False
-Q4,How often do you eat burritos in a week?,choiceQuestion,Never; 1-2 times; 3-4 times; 5+ times,,,,,False
-Q5,What kind of beans do you prefer in your burrito?,choiceQuestion,Black Beans; Pinto Beans; Refried Beans; No Beans,,,,,False
-Q6,What is your favorite kind of salsa to have in a burrito?,textQuestion,,,,,,False
-Q7,How spicy do you like your burrito?,scaleQuestion,,1.0,5.0,Not Spicy,Extremely Spicy,False
-Q8,"Have you ever tried a burrito with unconventional fillings like french fries or mac and cheese? If so, what did you think?",textQuestion,,,,,,False
-Q9,What is the most you would pay for a burrito?,textQuestion,,,,,,False
-Q10,Do you prefer your burrito grilled?,choiceQuestion,Yes; No,,,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite type of sandwich?,textQuestion,,,,,,,,True
+Q2,How often do you eat sandwiches?,choiceQuestion,Daily;Weekly;Monthly;Rarely;Never,,RADIO,,,,,False
+Q3,What is your favorite bread to use for sandwiches?,textQuestion,,,,,,,,False
+Q4,Do you prefer hot or cold sandwiches?,choiceQuestion,Hot;Cold;No preference,,RADIO,,,,,False
+Q5,What is your favorite sandwich filling?,textQuestion,,,,,,,,False
+Q6,Do you prefer to make your own sandwiches or buy them?,choiceQuestion,Make my own;Buy them;No preference,,RADIO,,,,,False
+Q7,What is your favorite condiment to use on sandwiches?,textQuestion,,,,,,,,False
+Q8,How much do you typically spend on a sandwich?,scaleQuestion,,,,1.0,10.0,Very Little,Very Much,False
+Q9,Have you ever tried a sandwich with unusual ingredients?,choiceQuestion,Yes;No;I don't remember,,CHECKBOX,,,,,False
+Q10,When was the last time you ate a sandwich?,dateQuestion,,,,,,,,False

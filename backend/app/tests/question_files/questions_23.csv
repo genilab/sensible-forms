@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is your favorite TV show of all time?,textQuestion,,,,,,True
-Q2,How many hours per week do you spend watching TV shows?,scaleQuestion,,0.0,20.0,,,False
-Q3,What genres of TV shows do you typically enjoy?,choiceQuestion,Drama;Comedy;Action;Sci-Fi;Fantasy;Horror;Thriller;Documentary;Reality TV;Other,,,,,False
-Q4,"Is there a particular actor or actress who consistently draws you to watch a TV show? If so, who?",textQuestion,,,,,,False
-Q5,"On a scale of 1 to 5, how important is the streaming platform when choosing a TV show to watch?",scaleQuestion,,1.0,5.0,,,False
-Q6,"Have you ever recommended a TV show to someone? If so, what show was it and why?",textQuestion,,,,,,False
-Q7,Do you prefer to binge-watch a TV show or watch one episode per week?,choiceQuestion,Binge-watch;One episode per week;No preference,,,,,False
-Q8,How often do you watch TV shows with others?,choiceQuestion,Never;Rarely;Sometimes;Often;Always,,,,,False
-Q9,What aspects of a TV show are most important to you?,textQuestion,,,,,,False
-Q10,How satisfied are you with the variety of TV shows available today?,scaleQuestion,,1.0,10.0,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,How often do you consume bread?,choiceQuestion,Daily;Weekly;Monthly;Rarely;Never,,RADIO,,,,,True
+Q2,What is your favorite type of bread?,textQuestion,,,,,,,,False
+Q3,"Do you prefer to buy bread from a grocery store, bakery, or make it at home?",choiceQuestion,Grocery store;Bakery;Make it at home,,RADIO,,,,,False
+Q4,"What is your favorite way to eat bread (e.g., toast, sandwich, with soup)?",textQuestion,,,,,,,,False
+Q5,"Are you allergic to any ingredients commonly found in bread, such as wheat or gluten?",choiceQuestion,Yes;No,,RADIO,,,,,False
+Q6,Have you ever baked bread at home?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q7,How important is the nutritional value of bread to you when making a purchase?,scaleQuestion,,,,1.0,5.0,Not important at all,Very important,False
+Q8,Are you interested in trying new or exotic types of bread?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q9,Do you have any dietary restrictions that affect your bread consumption?,textQuestion,,,,,,,,False
+Q10,Would you consider bread to be a staple food in your diet?,choiceQuestion,Yes;No,,RADIO,,,,,False

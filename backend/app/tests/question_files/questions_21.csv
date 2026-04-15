@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,How often do you eat salad?,choiceQuestion,Daily; A few times a week; Once a week; A few times a month; Rarely; Never,,,,,True
-Q2,What is your favorite type of salad?,textQuestion,,,,,,False
-Q3,"On a scale of 1 to 5, how healthy do you consider salads to be?",scaleQuestion,,1.0,5.0,Not at all healthy,Extremely healthy,False
-Q4,What are your favorite ingredients to include in a salad?,textQuestion,,,,,,False
-Q5,Do you typically eat salad as a main course or a side dish?,choiceQuestion,Main course; Side dish; Both,,,,,False
-Q6,Have you ever tried making your own salad dressing?,choiceQuestion,Yes; No,,,,,False
-Q7,"If yes, what is your favorite homemade salad dressing recipe?",textQuestion,,,,,,False
-Q8,How much money do you typically spend on salad per week?,scaleQuestion,,0.0,50.0,$0,$50,False
-Q9,What is the best salad you have ever eaten and where did you eat it?,textQuestion,,,,,,False
-Q10,What is the most unusual ingredient you have ever put in a salad?,textQuestion,,,,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite vegetable?,textQuestion,,,,,,,,True
+Q2,How often do you consume vegetables?,choiceQuestion,Daily;Weekly;Monthly;Rarely,,RADIO,,,,,False
+Q3,What is your least favorite vegetable?,textQuestion,,,,,,,,False
+Q4,Do you grow your own vegetables?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q5,How would you rate your knowledge about different types of vegetables?,scaleQuestion,,,,1.0,5.0,Not knowledgeable at all,Very knowledgeable,False
+Q6,What is your preferred method of cooking vegetables?,textQuestion,,,,,,,,False
+Q7,Are you more likely to buy organic or non-organic vegetables?,textQuestion,,,,,,,,False
+Q8,Do you think vegetables are appropriately priced at your local grocery store?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q9,Are there any vegetables you would like to try but haven't yet?,textQuestion,,,,,,,,False
+Q10,Do you have any dietary restrictions that affect your vegetable consumption?,textQuestion,,,,,,,,False
