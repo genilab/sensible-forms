@@ -1,26 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is your favorite food?,textQuestion,,,,,,True
-Q2,"On a scale of 1 to 5, with 1 being ""not at all"" and 5 being ""very much,"" how much do you enjoy trying new foods?",scaleQuestion,,1.0,5.0,not at all,very much,False
-Q3,What is your favorite cuisine?,choiceQuestion,Italian;Mexican;Chinese;American;Indian;Other (please specify),,,,,True
-Q4,How often do you eat your favorite food?,choiceQuestion,Daily;Weekly;Monthly;Rarely;Never,,,,,False
-Q5,Is there a particular memory or story associated with your favorite food?,textQuestion,,,,,,True
-Q6,"Do you have any dietary restrictions or preferences (e.g., vegetarian, vegan, gluten-free)?",textQuestion,,,,,,False
-Q7,What is your favorite snack?,textQuestion,,,,,,True
-Q8,"On a scale of 1 to 5, how important is healthy eating to you?",scaleQuestion,,1.0,5.0,,,False
-Q9,What is your favorite dessert?,textQuestion,,,,,,True
-Q10,Do you prefer to cook at home or eat out?,choiceQuestion,Cook at home;Eat out;Both,,,,,False
-Q11,What is your favorite beverage to pair with your favorite food?,textQuestion,,,,,,True
-Q12,Are you allergic to any foods?,textQuestion,,,,,,False
-Q13,What is your favorite food to cook?,textQuestion,,,,,,True
-Q14,How would you rate the importance of organic food in your diet on a scale of 1-5?,scaleQuestion,,1.0,5.0,,,False
-Q15,What is your favorite fruit?,textQuestion,,,,,,True
-Q16,What is your favorite vegetable?,textQuestion,,,,,,False
-Q17,Do you consider yourself a picky eater?,choiceQuestion,Yes;No;Somewhat,,,,,True
-Q18,How often do you try new restaurants?,choiceQuestion,Very Often;Often;Sometimes;Rarely;Never,,,,,False
-Q19,"What is your favorite food that is considered a ""comfort food""?",textQuestion,,,,,,True
-Q20,Do you usually eat three meals a day?,choiceQuestion,Yes;No;Sometimes,,,,,False
-Q21,What is your favorite holiday food?,textQuestion,,,,,,True
-Q22,How much money do you spend on food each month?,textQuestion,,,,,,False
-Q23,What is your favorite food from your childhood?,textQuestion,,,,,,True
-Q24,Do you read the nutrition facts before purchasing food?,choiceQuestion,Always;Sometimes;Rarely;Never,,,,,False
-Q25,What is your favorite food trend?,textQuestion,,,,,,True
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite art style?,textQuestion,,,,,,,,True
+Q2,Which of the following art styles do you find most visually appealing?,choiceQuestion,Abstract;Surrealism;Impressionism;Realism;Pop Art,,CHECKBOX,,,,,False
+Q3,"On a scale of 1 to 5, how familiar are you with the term ""Avant-Garde""?",scaleQuestion,,,,1.0,5.0,Not at all familiar,Very familiar,False
+Q4,Have you ever tried creating art in the style of Cubism?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q5,"Do you have a preferred time period for art styles (e.g., Renaissance, Baroque, Modern)?",textQuestion,,,,,,,,False
+Q6,Which art style do you think is most influential in contemporary design?,choiceQuestion,Minimalism;Art Deco;Bauhaus;Mid-Century Modern,,DROP_DOWN,,,,,False
+Q7,How often do you visit art museums or galleries?,choiceQuestion,Frequently;Occasionally;Rarely;Never,,RADIO,,,,,False
+Q8,Are there any art styles that you actively dislike?,textQuestion,,,,,,,,False
+Q9,"In your opinion, what distinguishes one art style from another?",textQuestion,,,,,,,,False
+Q10,"Would you consider ""Digital Art"" to be a legitimate art style?",choiceQuestion,Yes;No,,RADIO,,,,,False

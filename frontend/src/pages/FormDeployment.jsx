@@ -10,7 +10,7 @@
  */
 
 // Example Code:
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 
 import { sendDeploymentMessage, deployFormCsv, getFormResponses } from "../services/formDeploymentService.js";
 import { getOrCreateSessionId } from "../services/session.js";
@@ -36,6 +36,13 @@ export default function FormDeployment() {
 
 	const canSend = useMemo(() => input.trim().length > 0 && !isSending, [input, isSending]);
 	const canDeploy = useMemo(() => selectedFile && !isDeploying, [selectedFile, isDeploying]);
+	const fileInputRef = useRef(null)
+
+	// Reset input box for file upload (patches a browser inconsistency)
+	function resetFileInput() {
+		setSelectedFile(null);
+		if (fileInputRef.current) fileInputRef.current.value = "";
+	}
 
 	async function onSend(e) {
 		e?.preventDefault?.();
@@ -82,6 +89,7 @@ export default function FormDeployment() {
 			setError(err instanceof Error ? err.message : String(err));
 		} finally {
 			setIsDeploying(false);
+			resetFileInput()
 		}
 	}
 
@@ -151,6 +159,7 @@ export default function FormDeployment() {
 				<div className="row">
 					<input
 						className="input"
+						ref={fileInputRef}
 						type="file"
 						accept=".csv"
 						onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}

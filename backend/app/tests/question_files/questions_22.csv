@@ -1,26 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is your favorite food?,textQuestion,,,,,,True
-Q2,How often do you eat your favorite food?,choiceQuestion,Daily; Weekly; Monthly; Rarely,,,,,False
-Q3,"On a scale of 1 to 5, with 1 being ""not at all"" and 5 being ""very much"", how much does your favorite food improve your mood?",scaleQuestion,,1.0,5.0,Not at all,Very much,True
-Q4,Describe a memorable experience you had while eating your favorite food.,textQuestion,,,,,,False
-Q5,What is your favorite cuisine?,choiceQuestion,Italian; Mexican; Chinese; American; Other,,,,,True
-Q6,Do you have any allergies or dietary restrictions related to your favorite food?,textQuestion,,,,,,False
-Q7,How old were you when you first tried your favorite food?,scaleQuestion,,0.0,100.0,,,True
-Q8,Who introduced you to your favorite food?,textQuestion,,,,,,False
-Q9,What is your favorite restaurant to eat your favorite food?,textQuestion,,,,,,True
-Q10,How much do you typically spend on your favorite food per month?,scaleQuestion,,0.0,1000.0,,,False
-Q11,What time of day do you prefer to eat your favorite food?,choiceQuestion,Breakfast; Lunch; Dinner; Snack; Any time,,,,,True
-Q12,Is your favorite food healthy?,textQuestion,,,,,,False
-Q13,How many calories do you think are in a typical serving of your favorite food?,scaleQuestion,,0.0,2000.0,,,True
-Q14,Do you know how to prepare your favorite food?,textQuestion,,,,,,False
-Q15,What ingredients do you need to make your favorite food?,textQuestion,,,,,,True
-Q16,Have you ever had a bad experience eating your favorite food?,textQuestion,,,,,,False
-Q17,Do you consider your favorite food to be a comfort food?,choiceQuestion,Yes; No; Maybe,,,,,True
-Q18,Would you share your favorite food with others?,textQuestion,,,,,,False
-Q19,What is your second-favorite food?,textQuestion,,,,,,True
-Q20,How often do you eat your second-favorite food?,choiceQuestion,Daily; Weekly; Monthly; Rarely,,,,,False
-Q21,"On a scale of 1 to 5, with 1 being ""not at all"" and 5 being ""very much"", how much does your second-favorite food improve your mood?",scaleQuestion,,1.0,5.0,Not at all,Very much,True
-Q22,Describe a memorable experience you had while eating your second-favorite food.,textQuestion,,,,,,False
-Q23,What is your favorite dessert?,textQuestion,,,,,,True
-Q24,Do you have a recipe for your favorite food?,textQuestion,,,,,,False
-Q25,Is there a cultural significance to your favorite food?,textQuestion,,,,,,True
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite travel destination?,textQuestion,,,,,,,,True
+Q2,How often do you travel per year?,choiceQuestion,Never;Rarely;Once a year;A few times a year;Often,,RADIO,,,,,False
+Q3,What is your preferred type of accommodation when traveling?,choiceQuestion,Hotel;Hostel;Airbnb;Camping,True,RADIO,,,,,False
+Q4,"On a scale of 1 to 5, how important is budget when planning a trip?",scaleQuestion,,,,1.0,5.0,Not Important at All,Extremely Important,False
+Q5,What activities do you enjoy most while traveling?,choiceQuestion,Sightseeing;Hiking;Trying local cuisine;Relaxing on the beach;Shopping,True,CHECKBOX,,,,,False
+Q6,When do you plan on taking your next trip?,dateQuestion,,,,,,,,False
+Q7,How much time do you usually spend at a travel destination?,choiceQuestion,A day;A weekend;A week;A month,True,RADIO,,,,,False
+Q8,What is the best time of day for you to explore a new place?,timeQuestion,,,,,,,,False
+Q9,Who do you usually travel with?,choiceQuestion,Alone;With family;With friends;With a partner,True,RADIO,,,,,False
+Q10,What is the farthest you have ever traveled from your home?,textQuestion,,,,,,,,False
