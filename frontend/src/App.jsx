@@ -97,6 +97,9 @@ export default function App() {
               <p className="brandSub">
                 LLM-powered workflows for survey creation, analysis, and deployment
               </p>
+              <p className="startupNotice">
+                Note: First request may take up to ~60 seconds due to server startup. After that, responses are fast.
+              </p>
             </div>
           </div>
         </div>

@@ -471,6 +471,12 @@ hr {
   color: var(--text);
 }
 
+.startupNotice {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;
@@ -695,7 +701,8 @@ body:has(.container.dark-mode) {
   border-radius: 14px;
 
   border: 1px solid rgba(200,162,74,0.35);
-  background: rgba(255,255,255,0.75);
+  background: rgba(255,255,255,0.72);
+  color: var(--text);
 
   cursor: pointer;
   text-align: left;
@@ -715,10 +722,52 @@ body:has(.container.dark-mode) {
     rgba(200,162,74,0.38),
     rgba(200,162,74,0.14)
   );
-  border-color: rgba(200,162,74,0.7);
+  border-color: rgba(200,162,74,0.70);
   box-shadow:
     0 16px 22px rgba(200,162,74,0.22),
     inset 0 1px 0 rgba(255,255,255,0.55);
+}
+
+.accessibilityHeading {
+  margin-bottom: 0;
+  color: inherit;
+}
+
+.accessibilityChevron {
+  font-size: 18px;
+  font-weight: 800;
+  color: inherit;
+  line-height: 1;
+}
+
+
+.dark-mode .accessibilityToggleButton {
+  background: rgba(255,255,255,0.06);
+  color: #f8fafc;
+  border-color: rgba(212,175,55,0.35);
+}
+
+.dark-mode .accessibilityToggleButton:hover {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(212,175,55,0.65);
+  box-shadow: 0 10px 18px rgba(212,175,55,0.12);
+}
+
+.dark-mode .accessibilityToggleButton[aria-expanded="true"] {
+  background: linear-gradient(
+    135deg,
+    rgba(212,175,55,0.26),
+    rgba(212,175,55,0.10)
+  );
+  border-color: rgba(212,175,55,0.72);
+  box-shadow:
+    0 14px 20px rgba(212,175,55,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.dark-mode .accessibilityHeading,
+.dark-mode .accessibilityChevron {
+  color: #f8fafc;
 }
 
 .accessibilityChevron {
