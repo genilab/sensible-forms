@@ -46,9 +46,9 @@ class FormDeploymentDeployResponse(BaseModel):
     """Deterministic deployment attempt result.
     Reflects a real Google Forms deployment.
     """
-
     filename: str
     status: str
+    formId: Optional[str] = None
     feedback: str
 
 class FormDeploymentRetrieveResponse(BaseModel):

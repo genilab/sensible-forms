@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is the primary reason for your hotel stay?,choiceQuestion,Leisure; Business; Event; Other,,,,,True
-Q2,"On average, how many nights do you typically stay in a hotel per trip?",scaleQuestion,,1.0,7.0,,,False
-Q3,How important are the following factors when choosing a hotel?,ratingQuestion,,,,,,False
-Q4,What is your preferred price range per night for a hotel room?,choiceQuestion,Under $100; $100-$200; $200-$300; Over $300,,,,,False
-Q5,What types of amenities do you value most in a hotel?,textQuestion,,,,,,False
-Q6,How far are you willing to travel from the hotel to visit the city center?,scaleQuestion,,0.0,10.0,,,False
-Q7,Do you prefer modern or traditional hotel decor?,choiceQuestion,Modern; Traditional; No Preference,,,,,False
-Q8,How important is hotel loyalty program membership to you?,scaleQuestion,,1.0,5.0,,,False
-Q9,Describe your most memorable hotel experience.,textQuestion,,,,,,False
-Q10,How likely are you to book a hotel that has good environmental practices?,scaleQuestion,,1.0,7.0,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,How many cups of coffee do you drink per day?,textQuestion,,,,,,,,True
+Q2,What is your favorite type of coffee?,choiceQuestion,Black; Latte; Cappuccino; Americano; Espresso,True,RADIO,,,,,False
+Q3,How do you usually brew your coffee at home?,choiceQuestion,Drip Machine; French Press; Pour Over; Espresso Machine; Instant Coffee,True,CHECKBOX,,,,,False
+Q4,What is your favorite coffee shop?,textQuestion,,,,,,,,False
+Q5,How much are you willing to spend on a cup of coffee?,scaleQuestion,,,,1.0,5.0,Very Little,A Lot,False
+Q6,Do you add sugar to your coffee?,choiceQuestion,Yes; No,,RADIO,,,,,False
+Q7,Do you add milk or cream to your coffee?,choiceQuestion,Yes; No,,RADIO,,,,,False
+Q8,At what time of day do you usually drink coffee?,timeQuestion,,,,,,,,False
+Q9,How important is fair trade coffee to you?,scaleQuestion,,,,1.0,5.0,Not Important,Very Important,False
+Q10,How has coffee affected your sleep schedule?,textQuestion,,,,,,,,False

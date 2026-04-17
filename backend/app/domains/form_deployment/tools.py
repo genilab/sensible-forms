@@ -43,7 +43,7 @@ def form_deployment_check_csv_tool(
         errors.append("\nNo CSV file uploaded.\n")
 
     else:
-        df = data.replace('', np.nan).infer_objects() # Normalize empty strings to np.nan for consistent handling and fix FutureWarning
+        df = data.replace(['', '#'], np.nan).infer_objects() # Normalize empty strings to np.nan for consistent handling and fix FutureWarning
 
         # 2. Confirm columns exist in dataframe - critical
         columns = df.columns.tolist() if not df.empty else [] # Handle empty DataFrame
@@ -51,7 +51,7 @@ def form_deployment_check_csv_tool(
             errors.append("\nNo columns detected in CSV.\n")
 
         # 3. Check column names - critical
-        valid_columns = ["question_id", "question_text", "question_type", "response_options", "scale_min", "scale_max", "scale_min_label", "scale_max_label", "required"]
+        valid_columns = ["question_id", "question_text", "question_type", "response_options", "is_other", "choice_type", "scale_min", "scale_max", "scale_min_label", "scale_max_label", "required"]
         if columns != valid_columns:
             invalid_columns = [col for col in columns if col not in valid_columns]
             errors.append(f"""
@@ -86,7 +86,33 @@ def form_deployment_check_csv_tool(
                 The current invalid response options are: {", ".join(map(str, invalid_responses))}
                 """)
 
-            # 6. Check for int/float in scale_min & scale_max
+            # 6. Check for valid is_other entry (ignoring NaN/empty entries)
+            valid_is_other_values = ['true', 'false', '1', '0', '1.0', '0.0']
+            invalid_required_rows = df[df['is_other'].notna() & ~df['is_other'].astype(str).str.lower().isin(valid_is_other_values)]
+            if not invalid_required_rows.empty:
+                invalid_rows_idx = invalid_required_rows.index.tolist()
+                invalid_values = invalid_required_rows['is_other'].tolist()
+                errors.append(f"""
+                Invalid values detected in 'is_other' column.
+                Valid values must be boolean (True/False) or interpretable as such (e.g. {", ".join(valid_is_other_values)}).
+                The current invalid rows are: {", ".join(map(str, invalid_rows_idx))}
+                The current invalid 'is_other' values are: {", ".join(map(str, invalid_values))}
+                """)
+
+            # 7. Check for valid choice_type entry (ignoring NaN/empty entries)
+            valid_choice_type_values = ['RADIO', 'CHECKBOX', 'DROP_DOWN']
+            invalid_required_rows = df[df['choice_type'].notna() & ~df['choice_type'].astype(str).isin(valid_choice_type_values)]
+            if not invalid_required_rows.empty:
+                invalid_rows_idx = invalid_required_rows.index.tolist()
+                invalid_values = invalid_required_rows['choice_type'].tolist()
+                errors.append(f"""
+                Invalid values detected in 'choice_type' column.
+                Valid values are: {", ".join(valid_choice_type_values)}).
+                The current invalid rows are: {", ".join(map(str, invalid_rows_idx))}
+                The current invalid 'choice_type' values are: {", ".join(map(str, invalid_values))}
+                """)
+
+            # 8. Check for int/float in scale_min & scale_max
             # Check if 'scale_min' can be converted to numeric (ignoring NaN)
             numeric_scale_min = pd.to_numeric(df['scale_min'], errors='coerce')
             invalid_scale_min_rows = df[numeric_scale_min.isna() & df['scale_min'].notna()]
@@ -113,7 +139,7 @@ def form_deployment_check_csv_tool(
                 The current invalid 'scale_max' values are: {", ".join(map(str, invalid_values))}
                 """)
 
-            # 7. Check for scale_min & scale_max valid range
+            # 9. Check for scale_min & scale_max valid range
             # Check if 'scale_min' is in valid range [0-1]
             if not numeric_scale_min.empty and invalid_scale_min_rows.empty:
                 invalid_range_min_rows = df[(numeric_scale_min.notna()) & ((numeric_scale_min < 0) | (numeric_scale_min > 1))]
@@ -140,20 +166,20 @@ def form_deployment_check_csv_tool(
                     The current invalid 'scale_max' values are: {", ".join(map(str, invalid_values))}
                     """)
 
-            # 8. Check for bool in 'required'
-            valid_bool_values = ['true', 'false', '1', '0', '1.0', '0.0']
-            invalid_required_rows = df[df['required'].notna() & ~df['required'].astype(str).str.lower().isin(valid_bool_values)]
+            # 10. Check for bool in 'required'
+            valid_required_values = ['true', 'false', '1', '0', '1.0', '0.0']
+            invalid_required_rows = df[df['required'].notna() & ~df['required'].astype(str).str.lower().isin(valid_required_values)]
             if not invalid_required_rows.empty:
                 invalid_rows_idx = invalid_required_rows.index.tolist()
                 invalid_values = invalid_required_rows['required'].tolist()
                 errors.append(f"""
                 Invalid values detected in 'required' column.
-                Valid values must be boolean (True/False) or interpretable as such (e.g. {", ".join(valid_bool_values)}).
+                Valid values must be boolean (True/False) or interpretable as such (e.g. {", ".join(valid_required_values)}).
                 The current invalid rows are: {", ".join(map(str, invalid_rows_idx))}
                 The current invalid 'required' values are: {", ".join(map(str, invalid_values))}
                 """)
 
-            # 9. Check for empty rows
+            # 11. Check for empty rows
             empty_rows = df[df.isnull().all(axis=1)]
             if not empty_rows.empty:
                 empty_rows_idx = empty_rows.index.tolist()
@@ -172,15 +198,17 @@ def decode_question_type(row: pd.Series) -> dict:
     question_type = row["question_type"]
     if question_type == "choiceQuestion": # A respondent can choose from a pre-defined set of options.
         # Collect options from row["response_options"]
-        options = [{"value": opt} for opt in [item.strip() for item in row["response_options"].split(";")]]
-        question = {
-            "type": "RADIO", # Options as buttons
+        options = [{"value": opt} for opt in [item.strip() for item in row.get("response_options", "").split(";")]]
+        if row.get("choice_type") in ["RADIO", "CHECKBOX"] and row["is_other"]:
+            options.append({"isOther": True})
+        return {
+            "type": row.get("choice_type", "RADIO"), # RADIO, CHECKBOX, DROP_DOWN
             "options": options,
             "shuffle": False,
         }
 
     elif question_type == "dateQuestion": # A respondent can enter a date.
-        question = {
+        return {
             "includeTime": False,
             "includeYear": True,
         }
@@ -189,50 +217,52 @@ def decode_question_type(row: pd.Series) -> dict:
         # Convert NaN labels to None
         high_label = None if pd.isna(row["scale_max_label"]) else row["scale_max_label"]
         low_label = None if pd.isna(row["scale_min_label"]) else row["scale_min_label"]
-        question = {
-            "high": row["scale_max"],
+        return {
+            "high": row.get("scale_max", 5),
             "highLabel": high_label,
-            "low": row["scale_min"],
+            "low": row.get("scale_min", 1),
             "lowLabel": low_label,
         }
 
     elif question_type == "textQuestion": # A respondent can enter a free text response.
-        question = {
+        return {
             "paragraph": True,
         }
 
     elif question_type == "timeQuestion": # A respondent can enter a time.
-        question = {
+        return {
             "duration": False,
         }
 
     else:
         raise ValueError(f"Question type unknown for row: {row}")
-    return question
 
 
 # Generate JSON-like dict for an input question specified in a CSV row
 def format_question(index, row) -> dict:
     """Add question data to a formatted question dictionary for form batchUpdate."""
-    NEW_QUESTION = {
-        "requests": [
-            {
-                "createItem": {
-                    "item": {
-                        "title": (row["question_text"]),
-                        "questionItem": {
-                            "question": {
-                                "required": row["required"],
-                                row["question_type"]: decode_question_type(row),
-                            }
+    if row["question_type"] in ["choiceQuestion", "dateQuestion", "scaleQuestion", "textQuestion", "timeQuestion"]:
+        return {
+            "requests": [
+                {
+                    "createItem": {
+                        "item": {
+                            "title": row.get("question_text", ""),
+                            "questionItem": {
+                                "question": {
+                                    "required": row.get("required", False),
+                                    row["question_type"]: decode_question_type(row),
+                                }
+                            },
                         },
-                    },
-                    "location": {"index": index},
+                        "location": {"index": index},
+                    }
                 }
-            }
-        ]
-    }
-    return NEW_QUESTION
+            ]
+        }
+    else:
+        # Extension support for sections / grid questions should go here
+        raise ValueError(f"Question type unknown for row: {row}")
 
 
 # Get user credentials
@@ -302,8 +332,17 @@ def form_deployment_deploy_form_tool(
     text = file_bytes.decode(encoding, errors="replace")
     data = pd.read_csv(io.StringIO(text))
 
+    # Make sure indexes pair with number of rows
+    data = data.reset_index().infer_objects()
+    
+    # Clean dytpes
+    data["choice_type"] = data["choice_type"].replace(np.nan, "RADIO").astype("str")
+    data["is_other"] = data["is_other"].replace(np.nan, False).astype("bool")
+    data["scale_min"] = pd.to_numeric(data["scale_min"], errors="coerce")
+    data["scale_max"] = pd.to_numeric(data["scale_max"], errors="coerce")
+    data["required"] = data["required"].replace(np.nan, False).astype("bool")
+    
     # Format questions as list of JSON-like dicts
-    data = data.reset_index() # Make sure indexes pair with number of rows
     questions = [format_question(index, row) for index, row in data.iterrows()]
 
     # Get user credentials
@@ -353,30 +392,6 @@ def form_deployment_deploy_form_tool(
         return response
 
 
-# Convert response and question Data to CSV (now unused)
-def convert_to_csv_dict(responses: list, questions: dict) -> dict[str, list]:
-    """Convert response and question Data to CSV as a dict."""
-    columns = ["responseId", "lastSubmittedTime"] + [question for question in questions.values()]
-    
-    # Initialize out_dict with a new empty list for each key
-    out_dict = {key: [] for key in columns}
-
-    for response in responses: # Iterate through all responses
-        out_dict["responseId"].append(response.get("responseId")) # Add row responseId
-        out_dict["lastSubmittedTime"].append(response.get("lastSubmittedTime")) # Add row lastSubmittedTime
-
-        answers = response["answers"]
-        for question_id in questions.keys(): # Iterate through all response questions
-            try:
-                # Get the value and replace newline characters with a space
-                value = answers.get(question_id)["textAnswers"]["answers"][0]["value"]
-                out_dict[questions[question_id]].append(value.replace('\n', ' ')) # Add answer (no newlines)
-            except:
-                out_dict[questions[question_id]].append("No answer") # Add "No answer", if not found
-
-    return out_dict
-
-
 # Convert response and question Data to CSV
 def convert_to_csv_str(responses: list, questions: dict) -> str:
     """Convert response and question Data to CSV as a str."""
@@ -396,19 +411,21 @@ def convert_to_csv_str(responses: list, questions: dict) -> str:
 
         answers = response.get("answers")
         for question_id in questions.keys(): # Iterate through all questions
-            try:
-                # Get the value and replace newline characters with a space
-                row.append(
-                    answers
-                    .get(question_id, {})
-                    .get("textAnswers", {})
-                    .get("answers", [])[0]
-                    .get("value", "")
-                    .replace('\n', ' ')
-                )
-            except (KeyError, IndexError, TypeError):
-                row.append("No answer") # Add "No answer" if not found
-        
+            # Get the value and replace newline characters with a space
+            answer_values = [
+                answer.get('value', '')
+                for answer in answers
+                .get(question_id, {})
+                .get('textAnswers', {})
+                .get('answers', [])
+            ]
+            if answer_values:
+                # Separate multiple answers with ';'
+                row.append("; ".join(answer_values).replace('\n', ' '))
+            else:
+                # Add "No answer" if not found
+                row.append("No answer")
+
         writer.writerow(row)
     return out_str.getvalue()
 
@@ -418,8 +435,7 @@ def form_deployment_retrieve_form_tool(
     formId: str,
     *,
     encoding: str = "utf-8",
-    output_type: str = "str",
-) -> str | dict:
+) -> str:
     """Retrieve remote form data as a CSV file. 
     Returns a response dictionary containing the CSV content."""
     if not formId: 
@@ -435,6 +451,8 @@ def form_deployment_retrieve_form_tool(
         # Get the responses of your specified form:
         resp_data = form_service.forms().responses().list(formId=formId).execute()
         responses = resp_data.get("responses")
+        if responses is None:
+            raise ValueError("No responses found.")
 
         # Get the questions of your specified form:
         form_data = form_service.forms().get(formId=formId).execute()
@@ -444,5 +462,4 @@ def form_deployment_retrieve_form_tool(
         }
         
         # Convert the responses and questions to the str/dictionary format
-        return convert_to_csv_str(responses, questions) \
-            if output_type == "str" else convert_to_csv_dict(responses, questions)
+        return convert_to_csv_str(responses, questions)
