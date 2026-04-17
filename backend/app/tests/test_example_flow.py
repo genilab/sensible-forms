@@ -56,6 +56,15 @@ def test_upload_flow_accepts_csv():
     assert isinstance(r.json()["file_id"], str)
 
 
+def test_upload_flow_accepts_csv_legacy_alias():
+    files = {"file": ("sample.csv", b"a,b\n1,2\n", "text/csv")}
+    r = client.post("/uploads/", files=files)
+    assert r.status_code == 200
+    assert r.json()["filename"] == "sample.csv"
+    assert "file_id" in r.json()
+    assert isinstance(r.json()["file_id"], str)
+
+
 def test_analysis_chat_flow_with_upload_mode():
     files = {
         "file": (

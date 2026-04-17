@@ -54,11 +54,11 @@ The example frontend persists a UUID per page (domain) using `localStorage` (see
   - Request: `{ "message": string, "session_id"?: string, "last_deploy_filename"?: string|null, "last_deploy_status"?: string|null, "last_deploy_feedback"?: string|null }`
   - Response: `{ "message": string, "session_id": string }`
 
-- `POST /analysis/uploads/`
+- `POST /analysis/uploads/` (canonical)
   - Multipart form-data file upload (CSV only)
   - Response: `{ "filename": string, "file_id": string }`
 
-- `POST /uploads/` (legacy alias)
+- `POST /uploads/` (legacy alias; deprecated)
   - Multipart form-data file upload (CSV only)
   - Response: `{ "filename": string, "file_id": string }`
 

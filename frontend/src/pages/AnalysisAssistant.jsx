@@ -92,21 +92,9 @@ export default function AnalysisAssistant() {
 		<div>
 			<div style={{ fontWeight: 700, marginBottom: 8 }}>Analysis Assistant</div>
 			<div className="small" style={{ marginBottom: 12 }}>
-				Calls <code>POST /analysis/uploads</code> then <code>POST /analysis/chat</code>.
+				Calls <code>POST /analysis/uploads/</code> then <code>POST /analysis/chat</code>.
 			</div>
 
-			<form onSubmit={onUpload} className="row" style={{ marginBottom: 12 }}>
-				<input
-					className="input"
-					type="file"
-					accept=".csv,text/csv"
-					onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-					disabled={isLoading}
-				/>
-				<button className="button" type="submit" disabled={!selectedFile || isLoading}>
-					{isLoading ? "Uploading…" : "Upload CSV"}
-				</button>
-			</form>
 
 			<div className="chat" aria-live="polite">
 				{messages.map((m, idx) => (
@@ -132,6 +120,19 @@ export default function AnalysisAssistant() {
 				/>
 				<button className="button" type="submit" disabled={!canSend}>
 					{isLoading ? "Analyzing…" : "Send"}
+				</button>
+			</form>
+
+			<form onSubmit={onUpload} className="row" style={{ marginTop: 12 }}>
+				<input
+					className="input"
+					type="file"
+					accept=".csv,text/csv"
+					onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+					disabled={isLoading}
+				/>
+				<button className="button" type="submit" disabled={!selectedFile || isLoading}>
+					{isLoading ? "Uploading…" : "Upload CSV"}
 				</button>
 			</form>
 

@@ -25,7 +25,8 @@ class AnalysisChatRequest(BaseModel):
     # When true, the backend will profile the uploaded CSV and proactively suggest analyses.
     upload_mode: bool = False
 
-    # Identifier returned by POST /analysis/uploads/ (preferred) or POST /uploads/ (legacy).
+    # Identifier returned by POST /analysis/uploads/ (canonical).
+    # `/uploads/` is a legacy alias (deprecated) that returns the same `file_id` shape.
     file_id: Optional[str] = None
 
     # Legacy support (if a client only has a filename).

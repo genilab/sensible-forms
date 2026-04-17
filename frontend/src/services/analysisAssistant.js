@@ -22,7 +22,7 @@ import { postMultipart } from "./http.js";
 export async function uploadSurveyCsv(file) {
 	const form = new FormData();
 	form.append("file", file);
-	return await postMultipart("/analysis/uploads/", form);
+	return await postMultipart("/uploads/", form);
 }
 
 /**

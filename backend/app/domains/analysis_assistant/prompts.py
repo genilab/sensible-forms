@@ -21,10 +21,18 @@ SYSTEM_PROMPT = (
 	"When answering, be practical and specific to the dataset's columns. "
 	"Do not be overly brief: if the user prompt asks for multi-bullet sections, comply with the requested structure and counts. "
 	"Prefer clear section headings and complete bullet points (never end mid-sentence).\n\n"
-	"If exact statistics are needed and you cannot compute them from the provided tool output, "
-	"request tools using a single JSON object with this shape:\n"
-	"{\"tool_calls\": [{\"name\": \"freq\"|\"crosstab\"|\"describe_numeric\"|\"sample_text\", \"args\": {...}}]}\n"
-	"Only request tools when necessary. Otherwise, answer normally." 
+	"Tool calling (internal):\n"
+	"- Only request tools when you truly need exact computed values.\n"
+	"- If you request tools, respond with ONLY a single JSON object (no prose, no markdown) of the form:\n"
+	"  {\"tool_calls\": [{\"name\": \"freq\"|\"crosstab\"|\"describe_numeric\"|\"sample_text\", \"args\": {...}}]}\n"
+	"- Request at most 5 tool calls at a time.\n"
+	"- Supported tools and args:\n"
+	"  - freq: {\"column\": str, \"top_k\"?: int, \"filters\"?: [{\"column\": str, \"op\": \"eq\", \"value\": str}]}\n"
+	"  - crosstab: {\"row\": str, \"col\": str, \"filters\"?: [...]}\n"
+	"  - describe_numeric: {\"column\": str, \"filters\"?: [...]}\n"
+	"  - sample_text: {\"column\": str, \"n\"?: int, \"redact\"?: bool, \"filters\"?: [...]}\n"
+	"- Filters only support op \"eq\".\n"
+	"- If you have enough information to answer, do NOT output tool_calls."
 )
 
 
@@ -51,6 +59,35 @@ def build_uploaded_dataset_user_prompt(*, profile_json: str, user_message: str) 
 		"4) If you need exact stats, request tools using the JSON tool_calls format from the system prompt.\n"
 		"Target length: ~250-600 words. Avoid generic greetings and avoid placeholder bullets like '*' with no content. "
 		"Do not end mid-bullet or mid-sentence."
+	)
+
+
+def build_uploaded_dataset_followup_user_prompt(*, profile_json: str, user_message: str) -> str:
+	"""Follow-up prompt when a dataset is available.
+
+	Unlike the upload-mode intro prompt, this does NOT force a fixed set of
+	sections. The goal is to answer the user's message directly and only add
+	extra structure when it helps.
+	"""
+
+	message_text = user_message.strip() or "(no message)"
+	return (
+		"You are continuing an ongoing chat with a user about an uploaded survey dataset.\n"
+		"The user has already provided the data; do NOT ask them to upload it again.\n\n"
+		"Dataset profile (JSON, no raw rows):\n"
+		f"{profile_json}\n\n"
+		"User message:\n"
+		f"{message_text}\n\n"
+		"Write a response that prioritizes answering the user's message directly.\n"
+		"Do NOT automatically include a full 'Dataset snapshot' section.\n"
+		"Only include additional sections/headings if they add value for this specific message.\n"
+		"If you add headings, keep them unnumbered and only include the ones you actually use.\n"
+		"If you suggest next analyses, keep it to 0-5 bullets and tie each suggestion to specific columns.\n"
+		"Only ask clarifying questions if needed (0-2).\n"
+		"If you need exact stats, request tools using the JSON tool_calls format from the system prompt (JSON only; no prose/markdown).\n"
+		"Target length: ~80-250 words unless the user explicitly asks for a longer summary. "
+		"Avoid generic scene-setting like 'Here's an analysis...' unless the user asked for a full report. "
+		"Do not end mid-sentence."
 	)
 
 
@@ -88,8 +125,10 @@ def build_tool_results_followup_user_prompt(*, tool_results_json: str) -> str:
 	return (
 		"Tool results (JSON):\n"
 		f"{tool_results_json}\n\n"
-		"Now produce the final answer.\n"
-		"Include: (1) the answer, (2) 3-7 suggested next analyses.\n"
+		"If you have enough information, write the final answer for the user.\n"
+		"If you still need more exact stats, respond ONLY with a JSON tool_calls object (no prose), requesting at most 5 tool calls.\n"
+		"For the final answer, prioritize answering the user's question.\n"
+		"Optionally include a brief 'Suggested next analyses' section (0-5 bullets) only if it would be helpful.\n"
 		"Do not end mid-bullet or mid-sentence."
 	)
 
