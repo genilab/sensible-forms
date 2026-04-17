@@ -11,6 +11,8 @@
 
 // Example Code:
 import { useMemo, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { sendDeploymentMessage, deployFormCsv, getFormResponses } from "../services/formDeploymentService.js";
 import { getOrCreateSessionId } from "../services/session.js";
@@ -125,7 +127,13 @@ export default function FormDeployment() {
 
 			<div className="chat" aria-live="polite">
 				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>{m.text}</div>
+					<div key={idx} className={`msg ${m.role}`}>
+						{m.role === "bot" ? (
+							<ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+						) : (
+							m.text
+						)}
+					</div>
 				))}
 			</div>
 
