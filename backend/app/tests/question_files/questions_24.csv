@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite superhero?,textQuestion,,,,,,,,True
+Q2,Which superhero power would you most like to have?,choiceQuestion,Super Strength; Flight; Telekinesis; Invisibility,False,RADIO,,,,,False
+Q3,Who is your favorite superheroine?,textQuestion,,,,,,,,False
+Q4,"On a scale of 1 to 5, how much do you enjoy superhero movies?",scaleQuestion,,,,1.0,5.0,,,False
+Q5,Do you prefer Marvel or DC superheroes?,choiceQuestion,Marvel; DC; Both; Neither,,RADIO,,,,,False
+Q6,"If you could be a sidekick to any superhero, who would you choose?",textQuestion,,,,,,,,False
+Q7,What do you think is the most important quality for a superhero to have?,choiceQuestion,Bravery; Intelligence; Compassion; Strength; Strategic Thinking,,CHECKBOX,,,,,False
+Q8,What is your favorite superhero team?,textQuestion,,,,,,,,False
+Q9,Have you ever dressed up as a superhero?,choiceQuestion,Yes; No,,RADIO,,,,,False
+Q10,How often do you read superhero comic books?,choiceQuestion,Very Often; Sometimes; Rarely; Never,,RADIO,,,,,False

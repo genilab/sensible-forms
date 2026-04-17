@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What type of computer do you primarily use?,choiceQuestion,Desktop;Laptop;Tablet,,RADIO,,,,,True
+Q2,What is your favorite brand of CPU?,textQuestion,,,,,,,,False
+Q3,How much RAM do you have in your computer?,textQuestion,,,,,,,,False
+Q4,"What type of storage do you use? (SSD, HDD, or both)",choiceQuestion,SSD;HDD;Both,,RADIO,,,,,False
+Q5,What is your preferred brand for motherboards?,textQuestion,,,,,,,,False
+Q6,Do you have a dedicated graphics card?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q7,How often do you upgrade your computer parts?,choiceQuestion,Never;Rarely;Sometimes;Often,,RADIO,,,,,False
+Q8,"What is the most important factor when choosing a computer case? (e.g., aesthetics, airflow, size)",textQuestion,,,,,,,,False
+Q9,"On a scale of 1 to 5, how comfortable are you with building your own computer?",scaleQuestion,,,,1.0,5.0,Not Comfortable,Very Comfortable,False
+Q10,What is your budget for building a computer?,textQuestion,,,,,,,,False

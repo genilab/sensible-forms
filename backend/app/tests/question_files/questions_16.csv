@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite animal?,textQuestion,,,,,,,,True
+Q2,Which of these animals is your favorite?,choiceQuestion,Dog;Cat;Bird;Fish,,RADIO,,,,,False
+Q3,How much do you like the following animal?,scaleQuestion,,,,1.0,5.0,,,False
+Q4,What is the most interesting fact you know about your favorite animal?,textQuestion,,,,,,,,False
+Q5,Have you ever owned your favorite animal?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q6,"If you could be any animal, what would you be?",textQuestion,,,,,,,,False
+Q7,What is your favorite animal from the following list?,choiceQuestion,Lion;Tiger;Bear,,RADIO,,,,,False
+Q8,How many pets do you have?,textQuestion,,,,,,,,False
+Q9,Do you think animals should be kept in zoos?,choiceQuestion,Yes;No;Maybe,,RADIO,,,,,False
+Q10,What is your favorite wild animal?,textQuestion,,,,,,,,False

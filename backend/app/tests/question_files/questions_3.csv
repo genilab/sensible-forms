@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite type of weather?,choiceQuestion,Sunny;Cloudy;Rainy;Snowy,False,RADIO,,,,,True
+Q2,"On a scale of 1 to 10, how much does the weather affect your mood?",scaleQuestion,,,,1.0,10.0,Not at all,Very much,False
+Q3,Do you prefer warm weather or cold weather?,choiceQuestion,Warm;Cold,,RADIO,,,,,False
+Q4,"Have you ever experienced a severe weather event, such as a hurricane, tornado, or blizzard?",choiceQuestion,Yes;No,,RADIO,,,,,False
+Q5,What is your favorite season and why?,textQuestion,,,,,,,,False
+Q6,How often do you check the weather forecast?,choiceQuestion,Daily;Weekly;Monthly;Rarely,,RADIO,,,,,False
+Q7,Do you enjoy outdoor activities regardless of the weather?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q8,What do you think is the ideal temperature?,textQuestion,,,,,,,,False
+Q9,Have you ever changed your plans because of the weather?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q10,What is your favorite thing to do on a rainy day?,textQuestion,,,,,,,,False

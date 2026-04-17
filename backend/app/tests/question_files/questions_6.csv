@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite book genre?,textQuestion,,,,,,,,True
+Q2,How often do you read books?,textQuestion,,,,,,,,False
+Q3,"What format do you prefer for reading books? (e.g., physical, ebook, audiobook)",choiceQuestion,physical;ebook;audiobook,,RADIO,,,,,False
+Q4,Who is your favorite author?,textQuestion,,,,,,,,False
+Q5,Where do you typically get your book recommendations?,textQuestion,,,,,,,,False
+Q6,How many books do you usually read in a month?,scaleQuestion,,,,1.0,10.0,Not at all,Very Often,False
+Q7,What time of day do you prefer to read?,timeQuestion,,,,,,,,False
+Q8,Do you prefer fiction or non-fiction books?,choiceQuestion,fiction;non-fiction,,RADIO,,,,,False
+Q9,What do you look for when choosing a book to read?,textQuestion,,,,,,,,False
+Q10,Do you prefer stand-alone books or series?,choiceQuestion,stand-alone;series,,RADIO,,,,,False

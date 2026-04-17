@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite color?,textQuestion,,,,,,,,True
+Q2,What feelings do you associate with the color blue?,textQuestion,,,,,,,,False
+Q3,Which of these colors do you dislike the most: Red; Yellow; Green; Blue,choiceQuestion,Red;Yellow;Green;Blue,,RADIO,,,,,False
+Q4,"In your opinion, what color best represents happiness?",textQuestion,,,,,,,,False
+Q5,"On a scale of 1 to 5, how much do you like the color green?",scaleQuestion,,,,1.0,5.0,,,False
+Q6,Do you think the color of a room affects your mood?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q7,"What is the most unappealing color, in your opinion?",textQuestion,,,,,,,,False
+Q8,Have your favorite colors changed over time?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q9,What is your favorite combination of colors?,textQuestion,,,,,,,,False
+Q10,Do you think certain colors are better suited for certain occasions?,choiceQuestion,Yes;No,,RADIO,,,,,False

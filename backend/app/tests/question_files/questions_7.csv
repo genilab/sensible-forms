@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What operating system do you primarily use?,choiceQuestion,Windows;MacOS;Linux;ChromeOS,,RADIO,,,,,True
+Q2,How satisfied are you with your current operating system?,scaleQuestion,,,,1.0,5.0,Not Satisfied,Very Satisfied,False
+Q3,How often do you encounter software compatibility issues with your operating system?,choiceQuestion,Frequently;Sometimes;Rarely;Never,,RADIO,,,,,False
+Q4,What is the most important feature you look for in an operating system?,textQuestion,,,,,,,,False
+Q5,Have you ever used Linux?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q6,How easy do you find it to troubleshoot problems with your operating system?,scaleQuestion,,,,1.0,5.0,Not easy,Very easy,False
+Q7,Do you prefer a desktop or mobile operating system?,choiceQuestion,Desktop;Mobile,,RADIO,,,,,False
+Q8,How familiar are you with the command line interface of your operating system?,scaleQuestion,,,,1.0,3.0,Not familiar,Very familiar,False
+Q9,"In your opinion, what is the biggest security risk associated with your operating system?",textQuestion,,,,,,,,False
+Q10,How often do you update your operating system?,choiceQuestion,Daily;Weekly;Monthly;Yearly,,RADIO,,,,,False

@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite art style?,textQuestion,,,,,,,,True
+Q2,Which of the following art styles do you find most visually appealing?,choiceQuestion,Abstract;Surrealism;Impressionism;Realism;Pop Art,,CHECKBOX,,,,,False
+Q3,"On a scale of 1 to 5, how familiar are you with the term ""Avant-Garde""?",scaleQuestion,,,,1.0,5.0,Not at all familiar,Very familiar,False
+Q4,Have you ever tried creating art in the style of Cubism?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q5,"Do you have a preferred time period for art styles (e.g., Renaissance, Baroque, Modern)?",textQuestion,,,,,,,,False
+Q6,Which art style do you think is most influential in contemporary design?,choiceQuestion,Minimalism;Art Deco;Bauhaus;Mid-Century Modern,,DROP_DOWN,,,,,False
+Q7,How often do you visit art museums or galleries?,choiceQuestion,Frequently;Occasionally;Rarely;Never,,RADIO,,,,,False
+Q8,Are there any art styles that you actively dislike?,textQuestion,,,,,,,,False
+Q9,"In your opinion, what distinguishes one art style from another?",textQuestion,,,,,,,,False
+Q10,"Would you consider ""Digital Art"" to be a legitimate art style?",choiceQuestion,Yes;No,,RADIO,,,,,False

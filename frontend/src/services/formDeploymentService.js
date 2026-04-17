@@ -11,7 +11,7 @@
  */
 
 // Example Code:
-import { postJson, postMultipart } from "./http.js";
+import { postJson, postMultipart, getJson } from "./http.js";
 
 /**
  * @param {string} message
@@ -33,9 +33,16 @@ export async function sendDeploymentMessage(message, session_id, context) {
  * @param {File} file
  * @returns {Promise<{filename: string, status: string, feedback: string}>}
  */
-
-export async function deploySurveyCsv(file) {
+export async function deployFormCsv(file) {
 	const formData = new FormData();
 	formData.append("file", file);
 	return await postMultipart("/form-deployment/deploy", formData);
+}
+
+/**
+ * @param {string} formId
+ * @returns {Promise<{content: string}>}
+ */
+export async function getFormResponses(formId) {
+	return await getJson(`/form-deployment/retrieve?formId=${formId}`);
 }

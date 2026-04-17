@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite car brand?,textQuestion,,,,,,,,True
+Q2,Which of the following car brands do you trust the most? (Choose all that apply),choiceQuestion,Toyota;Honda;Ford;BMW,,CHECKBOX,,,,,False
+Q3,How satisfied are you with the reliability of Toyota vehicles?,scaleQuestion,,,,1.0,5.0,Not at all satisfied,Very satisfied,False
+Q4,Have you ever owned a car manufactured by Ford?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q5,What is your opinion on the styling of BMW cars?,textQuestion,,,,,,,,False
+Q6,In what year was the company Mazda founded?,dateQuestion,,,,,,,,False
+Q7,Do you think Tesla cars are worth their price?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q8,How likely are you to purchase a car from Honda in the future?,scaleQuestion,,,,1.0,5.0,Not likely at all,Very likely,False
+Q9,What is your preferred method of learning about new car brands?,textQuestion,,,,,,,,False
+Q10,What is the maximum amount you would pay for a Mercedes-Benz car?,textQuestion,,,,,,,,False

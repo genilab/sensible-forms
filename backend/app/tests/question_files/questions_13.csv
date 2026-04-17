@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,How often do you visit the beach?,textQuestion,,,,,,,,True
+Q2,What is your favorite beach activity?,textQuestion,,,,,,,,False
+Q3,Do you prefer swimming in the ocean or relaxing on the sand?,choiceQuestion,Swimming;Relaxing,,RADIO,,,,,False
+Q4,What items do you usually bring with you to the beach?,textQuestion,,,,,,,,False
+Q5,Are you concerned about the environmental impact of beach tourism?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q6,Do you prefer crowded or secluded beaches?,choiceQuestion,Crowded;Secluded,,RADIO,,,,,False
+Q7,What is your favorite beach snack or beverage?,textQuestion,,,,,,,,False
+Q8,Have you ever participated in water sports such as surfing or paddleboarding?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q9,Do you usually apply sunscreen when visiting the beach?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q10,What is the most memorable experience you've had at the beach?,textQuestion,,,,,,,,False

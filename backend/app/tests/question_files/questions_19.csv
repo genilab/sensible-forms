@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What brand of phone do you currently use?,textQuestion,,,,,,,,True
+Q2,What do you primarily use your phone for?,choiceQuestion,Communication;Social Media;Work;Entertainment;Photography,True,CHECKBOX,,,,,False
+Q3,How satisfied are you with your current phone's battery life?,scaleQuestion,,,,1.0,5.0,Very Unsatisfied,Very Satisfied,False
+Q4,What is the most important feature you look for when buying a new phone?,choiceQuestion,Camera Quality;Battery Life;Screen Size;Processing Power;Price;Brand,,RADIO,,,,,False
+Q5,How often do you upgrade your phone?,choiceQuestion,Every year;Every 2 years;Every 3 years;Less often,,DROP_DOWN,,,,,False
+Q6,What size phone do you prefer?,choiceQuestion,Compact;Standard;Large,,RADIO,,,,,False
+Q7,Do you use your phone for mobile gaming?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q8,What is your preferred method of unlocking your phone?,choiceQuestion,Fingerprint;Face ID;PIN;Password,,RADIO,,,,,False
+Q9,How much are you willing to spend on a new phone?,textQuestion,,,,,,,,False
+Q10,How important is 5G connectivity to you?,scaleQuestion,,,,1.0,10.0,Not Important,Very Important,False

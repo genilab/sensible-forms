@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite type of flower?,textQuestion,,,,,,,,True
+Q2,Have you ever grown your own flowers?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q3,How often do you buy flowers for yourself or others?,scaleQuestion,,,,1.0,5.0,Rarely,Very Often,False
+Q4,What is your favorite color for flowers?,textQuestion,,,,,,,,False
+Q5,Do you have any allergies to flowers or pollen?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q6,What is your favorite season for flowers?,choiceQuestion,Spring;Summer;Autumn;Winter,,DROP_DOWN,,,,,False
+Q7,"On a scale of 1-10, how much do you enjoy receiving flowers as a gift?",scaleQuestion,,,,1.0,10.0,,,False
+Q8,Have you ever attended a flower arranging class?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q9,What do you think is the most beautiful flower?,textQuestion,,,,,,,,False
+Q10,Would you consider yourself a flower expert?,choiceQuestion,Yes;No,,RADIO,,,,,False

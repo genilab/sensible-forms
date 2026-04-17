@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,How many cups of coffee do you drink per day?,textQuestion,,,,,,,,True
+Q2,What is your favorite type of coffee?,choiceQuestion,Black; Latte; Cappuccino; Americano; Espresso,True,RADIO,,,,,False
+Q3,How do you usually brew your coffee at home?,choiceQuestion,Drip Machine; French Press; Pour Over; Espresso Machine; Instant Coffee,True,CHECKBOX,,,,,False
+Q4,What is your favorite coffee shop?,textQuestion,,,,,,,,False
+Q5,How much are you willing to spend on a cup of coffee?,scaleQuestion,,,,1.0,5.0,Very Little,A Lot,False
+Q6,Do you add sugar to your coffee?,choiceQuestion,Yes; No,,RADIO,,,,,False
+Q7,Do you add milk or cream to your coffee?,choiceQuestion,Yes; No,,RADIO,,,,,False
+Q8,At what time of day do you usually drink coffee?,timeQuestion,,,,,,,,False
+Q9,How important is fair trade coffee to you?,scaleQuestion,,,,1.0,5.0,Not Important,Very Important,False
+Q10,How has coffee affected your sleep schedule?,textQuestion,,,,,,,,False

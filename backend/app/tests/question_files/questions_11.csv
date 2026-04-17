@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,How often do you grill?,choiceQuestion,Daily;Weekly;Monthly;Rarely;Never,False,RADIO,,,,,True
+Q2,What type of grill do you primarily use?,choiceQuestion,Gas;Charcoal;Electric;Smoker,True,RADIO,,,,,False
+Q3,What is your favorite thing to grill?,textQuestion,,,,,,,,False
+Q4,Do you use a meat thermometer when grilling?,choiceQuestion,Yes;No,False,RADIO,,,,,False
+Q5,What is your preferred method for lighting a charcoal grill?,textQuestion,,,,,,,,False
+Q6,How do you typically marinate your meats before grilling?,textQuestion,,,,,,,,False
+Q7,What is your favorite wood for smoking meats on the grill?,choiceQuestion,Hickory;Mesquite;Applewood;Pecan;Cherry,True,CHECKBOX,,,,,False
+Q8,What do you think is the most challenging aspect of grilling?,textQuestion,,,,,,,,False
+Q9,What is your go-to side dish when grilling?,textQuestion,,,,,,,,False
+Q10,How important is grilling to your outdoor cooking?,scaleQuestion,,,,1.0,5.0,Not at all important,Extremely important,False

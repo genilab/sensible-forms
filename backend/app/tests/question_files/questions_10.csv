@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite type of sandwich?,textQuestion,,,,,,,,True
+Q2,How often do you eat sandwiches?,choiceQuestion,Daily;Weekly;Monthly;Rarely;Never,,RADIO,,,,,False
+Q3,What is your favorite bread to use for sandwiches?,textQuestion,,,,,,,,False
+Q4,Do you prefer hot or cold sandwiches?,choiceQuestion,Hot;Cold;No preference,,RADIO,,,,,False
+Q5,What is your favorite sandwich filling?,textQuestion,,,,,,,,False
+Q6,Do you prefer to make your own sandwiches or buy them?,choiceQuestion,Make my own;Buy them;No preference,,RADIO,,,,,False
+Q7,What is your favorite condiment to use on sandwiches?,textQuestion,,,,,,,,False
+Q8,How much do you typically spend on a sandwich?,scaleQuestion,,,,1.0,10.0,Very Little,Very Much,False
+Q9,Have you ever tried a sandwich with unusual ingredients?,choiceQuestion,Yes;No;I don't remember,,CHECKBOX,,,,,False
+Q10,When was the last time you ate a sandwich?,dateQuestion,,,,,,,,False

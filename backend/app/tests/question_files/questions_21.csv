@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite vegetable?,textQuestion,,,,,,,,True
+Q2,How often do you consume vegetables?,choiceQuestion,Daily;Weekly;Monthly;Rarely,,RADIO,,,,,False
+Q3,What is your least favorite vegetable?,textQuestion,,,,,,,,False
+Q4,Do you grow your own vegetables?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q5,How would you rate your knowledge about different types of vegetables?,scaleQuestion,,,,1.0,5.0,Not knowledgeable at all,Very knowledgeable,False
+Q6,What is your preferred method of cooking vegetables?,textQuestion,,,,,,,,False
+Q7,Are you more likely to buy organic or non-organic vegetables?,textQuestion,,,,,,,,False
+Q8,Do you think vegetables are appropriately priced at your local grocery store?,choiceQuestion,Yes;No,,RADIO,,,,,False
+Q9,Are there any vegetables you would like to try but haven't yet?,textQuestion,,,,,,,,False
+Q10,Do you have any dietary restrictions that affect your vegetable consumption?,textQuestion,,,,,,,,False

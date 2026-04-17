@@ -1,0 +1,11 @@
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite food?,textQuestion,,,,1.0,5.0,,,True
+Q2,What is your favorite cuisine?,textQuestion,,,,,,,,False
+Q3,Do you have any food allergies or dietary restrictions?,textQuestion,,,,,,,,False
+Q4,"On a scale of 1 to 5, how adventurous are you when trying new foods, with 1 being not at all adventurous and 5 being very adventurous?",scaleQuestion,,,,1.0,5.0,not at all adventurous,very adventurous,False
+Q5,What is your favorite restaurant?,textQuestion,,,,,,,,False
+Q6,What is your favorite home-cooked meal?,textQuestion,,,,,,,,False
+Q7,"If you could only eat one food for the rest of your life, what would it be?",textQuestion,,,,,,,,False
+Q8,What is your favorite dessert?,textQuestion,,,,,,,,False
+Q9,What is your favorite snack?,textQuestion,,,,,,,,False
+Q10,What is your favorite food-related memory?,textQuestion,,,,,,,,False
