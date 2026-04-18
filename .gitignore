@@ -239,5 +239,6 @@ backend/sensitive/
 frontend/sensitive/
 
 # Logs
+*.log.DS_Store
 *.log
 commit

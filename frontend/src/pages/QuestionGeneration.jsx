@@ -13,7 +13,6 @@
 
 // Imports
 import { useMemo, useState } from "react";
-
 import { generateQuestions } from "../services/questionGenerationService.js";
 import { getOrCreateSessionId } from "../services/session.js";
 
@@ -33,16 +32,16 @@ export default function QuestionGeneration() {
 	const [isDownloading, setIsDownloading] = useState(false);
 	const [lastResponse, setLastResponse] = useState("")
 
-	const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
+  const canSend = useMemo(() => input.trim().length > 0 && !isLoading, [input, isLoading]);
 
 	// Sending messages to and receiving messages from the LLM
 	async function onSend(e) {
 		e?.preventDefault?.();
 		if (!canSend) return;
 
-		const topic = input.trim();
-		setInput("");
-		setError("");
+    const topic = input.trim();
+    setInput("");
+    setError("");
 
 		setMessages((prev) => [...prev, { role: "user", text: topic }]);
 		setIsLoading(true);
@@ -103,22 +102,20 @@ export default function QuestionGeneration() {
 			setIsDownloading(false);
 		}
 	}
-	
 
-	return (
-		<div>
-			<div style={{ fontWeight: 700, marginBottom: 8 }}>Question Generation</div>
-			<div className="small" style={{ marginBottom: 12 }}>
-				Calls <code>POST /question-generation/</code> → domain service → agent → LLM client.
-			</div>
+  return (
+    <section aria-labelledby="question-generation-title">
+      <h2 className="pageHeading" id="question-generation-title">
+        Question Generation
+      </h2>
 
-			<div className="chat" aria-live="polite">
-				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>{m.text}</div>
-				))}
-			</div>
-
-			<hr />
+      <div className="chat" aria-live="polite" aria-label="Question generation conversation">
+        {messages.map((m, idx) => (
+          <div key={idx} className={`msg ${m.role}`}>
+            {m.text}
+          </div>
+        ))}
+      </div>
 
 			{/*This button is for submitting the user message.*/}
 			<form onSubmit={onSend} className="row">
@@ -154,6 +151,6 @@ export default function QuestionGeneration() {
 					Error: {error}
 				</div>
 			) : null}
-		</div>
+		</section>
 	);
 }
