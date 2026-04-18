@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is your favorite type of cheese?,textQuestion,,,,,,True
-Q2,"On a scale of 1 to 5, how often do you consume cheese?",scaleQuestion,,1.0,5.0,Rarely,Very Often,False
-Q3,Describe your ideal cheese platter.,textQuestion,,,,,,False
-Q4,Have you ever attended a cheese tasting event?,choiceQuestion,Yes;No,,,,,False
-Q5,What is your preferred cheese pairing?,textQuestion,,,,,,False
-Q6,Do you consider cheese to be a healthy food?,choiceQuestion,Yes;No;Unsure,,,,,False
-Q7,How much money do you spend on cheese per month?,scaleQuestion,,0.0,100.0,$0,$100+,False
-Q8,What is the most adventurous cheese you have ever tried?,textQuestion,,,,,,False
-Q9,Do you think cheese is appropriately priced?,choiceQuestion,Yes;No;Unsure,,,,,False
-Q10,What brand of cheese do you prefer to buy?,textQuestion,,,,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite holiday?,textQuestion,,,,,,,,True
+Q2,What is your favorite aspect of your favorite holiday?,textQuestion,,,,,,,,False
+Q3,Which of these holidays do you celebrate?,choiceQuestion,New Year's Day;Valentine's Day;Easter;Independence Day;Halloween;Thanksgiving;Christmas,True,CHECKBOX,,,,,False
+Q4,"On a scale of 1 to 5, how important are holidays to you?",scaleQuestion,,,,1.0,5.0,,,False
+Q5,Do you have any unique traditions or rituals associated with your favorite holiday?,textQuestion,,,,,,,,False
+Q6,How do you typically celebrate your favorite holiday?,textQuestion,,,,,,,,False
+Q7,"If you could create a new holiday, what would it be and why?",textQuestion,,,,,,,,False
+Q8,Do you prefer holidays that are more religious or secular in nature?,choiceQuestion,Religious;Secular;No preference,,RADIO,,,,,False
+Q9,How much do you typically spend on gifts and celebrations for your favorite holiday?,textQuestion,,,,,,,,False
+Q10,What is your earliest or fondest memory of celebrating holidays?,textQuestion,,,,,,,,False

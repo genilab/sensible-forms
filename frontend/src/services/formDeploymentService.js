@@ -33,7 +33,7 @@ export async function sendDeploymentMessage(message, session_id, context) {
  * @param {File} file
  * @returns {Promise<{filename: string, status: string, feedback: string}>}
  */
-export async function deployFormCsv(file) {
+export async function deploySurveyCsv(file) {
 	const formData = new FormData();
 	formData.append("file", file);
 	return await postMultipart("/form-deployment/deploy", formData);

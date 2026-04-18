@@ -1,4 +1,5 @@
 import os
+import csv
 
 # Keep tests deterministic even when developers have real API keys in their environment.
 os.environ.setdefault("LLM_PROVIDER", "mock")
@@ -12,35 +13,10 @@ from app.main import app
 
 client = TestClient(app)
 QUESTION_FILE_DIR = "backend/app/tests/question_files/"
-INVALID_QUESTION_FILES = [
-    "questions_11.csv",
-    "questions_12.csv",
-    "questions_13.csv",
-    "questions_15.csv",
-    "questions_2.csv",
-    "questions_21.csv",
-    "questions_22.csv",
-    "questions_23.csv",
-    "questions_4.csv",
-    "questions_7.csv",
-]
-FORMID_SAMPLES = [
-    "11jGGCenhoY2yRIRJ2sJ5N-GHb4ExnvTw1J7YfYhXuWg",
-    "1dpYows5TouZB_AZQru7rc4Ko-l09H5cPvsmLTf92O4A",
-    "17wd6QqdvIIBEmFZSiM8n2xSOcWHEIPDVOd9fMCAEx2k",
-    "1hn4hsEaj4FXeTVRKipmQmp8mVJjjuERRSrXXJ7CdukU",
-    "1SePoym4o26kSK2OZHFhfeqX4AzyIxvmBmOPkXMJf0Eo",
-    "1px4kmsuxe5oHJbkLJr4ABcamurKIdoxOXQBBVx_jZGA",
-    "1tAeswUF12tsJKNrt5jAhsSot1GR93hRDiYaCK3-wV64",
-    "1X8Hq1YEWRZgrCov6Jf2Obmp9G2oHSkXajIPAum3yOR0",
-    "13yDYU5Y4XZcn86-y3AzjNQ86Cgz1SDp9_RsEzxxYFFo",
-    "1GjCR6UqwZmyrfQmp6_XR58SlhyYAjsyepMkQIMaHkdQ",
-    "1qY0OU44O9-6BtMFOuao5q1JPC53vgZnt-l2iNVVW6QA",
-    "1t-oQNiUeBu4gGIdqnKtVITfoJJN-FsN3rGKulHixBWg",
-    "1b2mc9EbRxVvvmk9lUHbQBHqIWbrn2-oa1LJZxO-fwgY",
-    "1m0HkYFl9LeyCaPz5VwgPgouoQbg2SahugljLQ66nMq4",
-    "1DsMi4OH8cKW-zZblh7INYjb0IV37r2LMCvZHmuZRago",
-]
+TEST_FILE_DIR = "backend/app/tests/"
+INVALID_QUESTION_FILES = [] # May be added as needed
+with open(TEST_FILE_DIR+"formId_samples.csv") as file:
+    formId_samples = list(csv.reader(file))[0]
 
 
 def test_form_deployment_flow():
@@ -81,13 +57,14 @@ def test_single_deployment():
     f = open(QUESTION_FILE_DIR+file, 'rb')
     files = {"file": (f.name, f, "text/csv")}
     r = client.post("/form-deployment/deploy", files=files)
-    assert r.json()["status"] == "success"
+    assert r.json()["status"] == "success", str(r.json())
 
 
 # View at https://docs.google.com/forms/u/0/
-# CAUTION: SLOW (~320s / ~5:20)
+# CAUTION: SLOW (~400s / ~6:40)
 @pytest.mark.asyncio
 async def test_all_deployments():
+    formId_samples = []
     for file in os.listdir(QUESTION_FILE_DIR):
         f = open(QUESTION_FILE_DIR+file, 'rb')
         files = {"file": (f.name, f, "text/csv")}
@@ -96,16 +73,22 @@ async def test_all_deployments():
             assert r.json()["status"] == "error"
         else: 
             assert r.json()["status"] == "success", f.name+"\n"+r.json()["feedback"]
+            formId_samples.append(r.json()["formId"])
         await asyncio.sleep(10)
+    with open(TEST_FILE_DIR+"formId_samples.csv", 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(formId_samples)
 
 
+# NOTE: Forms must have at least one response for successful retrieval
 def test_single_retrieval():
-    formId = FORMID_SAMPLES[0]
+    formId = formId_samples[0]
     r = client.get("/form-deployment/retrieve", params={"formId": formId})
     assert r.json()["status"] == "success", str(r.json())
 
 
+# NOTE: Forms must have at least one response for successful retrieval
 def test_all_retrievals():
-    for formId in FORMID_SAMPLES:
+    for formId in formId_samples:
         r = client.get("/form-deployment/retrieve", params={"formId": formId})
         assert r.json()["status"] == "success", str(r.json())

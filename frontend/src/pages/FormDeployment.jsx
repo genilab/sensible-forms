@@ -1,15 +1,3 @@
-/**
- * FormDeployment.jsx
- *
- * Screen component responsible for:
- * - Triggering form deployment
- * - Displaying deployment status or results
- *
- * This component handles UI state only.
- * API communication should be delegated to services.
- */
-
-// Example Code:
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";

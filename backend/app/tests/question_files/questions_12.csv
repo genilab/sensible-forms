@@ -1,11 +1,11 @@
-question_id,question_text,question_type,response_options,scale_min,scale_max,scale_min_label,scale_max_label,required
-Q1,What is your favorite cat breed?,textQuestion,,,,,,True
-Q2,"On a scale of 1 to 5, with 1 being ""not at all"" and 5 being ""very much,"" how much do you like Persian cats?",scaleQuestion,,1.0,5.0,Not at all,Very much,False
-Q3,Have you ever owned a cat?,choiceQuestion,Yes;No,,,,,False
-Q4,"If you have owned a cat, what breed(s) was it?",textQuestion,,,,,,False
-Q5,What qualities do you look for in a cat breed?,textQuestion,,,,,,False
-Q6,Do you prefer long-haired or short-haired cats?,choiceQuestion,Long-haired;Short-haired;No preference,,,,,False
-Q7,"How would you rate the following cat breeds on a scale of 1 to 10, with 1 being ""least favorite"" and 10 being ""most favorite""?",ratingQuestion,,,,,,False
-Q8,"In your opinion, what is the most low-maintenance cat breed?",textQuestion,,,,,,False
-Q9,How important is the cat's origin when choosing a breed?,scaleQuestion,,1.0,5.0,Not important,Very important,False
-Q10,Is there anything else you'd like to share about your preferences regarding cat breeds?,textQuestion,,,,,,False
+question_id,question_text,question_type,response_options,is_other,choice_type,scale_min,scale_max,scale_min_label,scale_max_label,required
+Q1,What is your favorite clothing brand?,textQuestion,,,,,,,,True
+Q2,"How often do you purchase clothing from your favorite brand? (e.g., weekly, monthly, yearly)",choiceQuestion,Weekly;Monthly;Yearly,,RADIO,,,,,False
+Q3,"What factors influence your choice of clothing brand? (e.g., price, quality, style, ethics)",choiceQuestion,Price;Quality;Style;Ethics,,CHECKBOX,,,,,False
+Q4,How satisfied are you with the quality of clothing from your favorite brand?,scaleQuestion,,,,1.0,5.0,Not Satisfied,Very Satisfied,False
+Q5,How would you rate the customer service of your favorite clothing brand?,scaleQuestion,,,,1.0,5.0,Poor,Excellent,False
+Q6,Are you more inclined to purchase clothing from established brands or emerging brands?,choiceQuestion,Established;Emerging,,RADIO,,,,,False
+Q7,Do you think clothing brands adequately represent diversity and inclusion in their marketing?,choiceQuestion,Yes;No;Maybe,,RADIO,,,,,False
+Q8,How important is sustainability when choosing a clothing brand?,scaleQuestion,,,,1.0,5.0,Not Important,Very Important,False
+Q9,"Have you ever stopped purchasing from a clothing brand due to a negative experience? If so, what was the reason?",textQuestion,,,,,,,,False
+Q10,Would you recommend your favorite clothing brand to a friend or family member?,choiceQuestion,Yes;No,,RADIO,,,,,False

@@ -11,7 +11,6 @@
  * Business logic should live in services or hooks.
  */
 
-// Example Code:
 import { useMemo, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
