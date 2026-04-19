@@ -9,7 +9,6 @@
  * API communication should be delegated to services.
  */
 
-// Example Code:
 import { useMemo, useState, useRef } from "react";
 
 import { sendDeploymentMessage, deployFormCsv, getFormResponses } from "../services/formDeploymentService.js";
@@ -32,7 +31,11 @@ export default function FormDeployment() {
 	const [error, setError] = useState("");
 	const [lastDeployFilename, setLastDeployFilename] = useState(null);
 	const [lastDeployStatus, setLastDeployStatus] = useState(null);
+	const [lastDeployFormId, setLastDeployFormId] = useState(null);
 	const [lastDeployFeedback, setLastDeployFeedback] = useState(null);
+	const [lastRetrieveFormId, setLastRetrieveFormId] = useState(null);
+    const [lastRetrieveStatus, setLastRetrieveStatus] = useState(null);
+    const [lastRetrieveFeedback, setLastRetrieveFeedback] = useState(null);
 
 	const canSend = useMemo(() => input.trim().length > 0 && !isSending, [input, isSending]);
 	const canDeploy = useMemo(() => selectedFile && !isDeploying, [selectedFile, isDeploying]);
@@ -58,7 +61,11 @@ export default function FormDeployment() {
 			const res = await sendDeploymentMessage(message, sessionId, {
 				last_deploy_filename: lastDeployFilename,
 				last_deploy_status: lastDeployStatus,
-				last_deploy_feedback: lastDeployFeedback
+				last_deploy_formId: lastDeployFormId,
+				last_deploy_feedback: lastDeployFeedback,
+				last_retrieve_formId: lastRetrieveFormId,
+				last_retrieve_status: lastRetrieveStatus,
+				last_retrieve_feedback: lastRetrieveFeedback
 			});
 			setMessages((prev) => [...prev, { role: "bot", text: res.message }]);
 		} catch (err) {
@@ -83,6 +90,7 @@ export default function FormDeployment() {
 			]);
 			setLastDeployFilename(res.filename);
 			setLastDeployStatus(res.status);
+			setLastDeployFormId(res.formId);
 			setLastDeployFeedback(res.feedback);
 			setSelectedFile(null);
 		} catch (err) {
@@ -113,10 +121,11 @@ export default function FormDeployment() {
 			const link = document.createElement("a");
 			link.setAttribute("href", url)
 			link.setAttribute("download", `responses_${formIdInput}.csv`);
-			//document.body.appendChild(link);
 			link.click();
-			//document.body.removeChild(link);
 			URL.revokeObjectURL(url);
+			setLastRetrieveFormId(res.formId);
+			setLastRetrieveStatus(res.status);
+			setLastRetrieveFeedback(res.feedback);
 		} catch (err) {
 			setError(err instanceof Error ? err.message : String(err));
 		} finally {
