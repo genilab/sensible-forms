@@ -18,7 +18,7 @@ load_dotenv(find_dotenv(usecwd=True), override=False)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import question_generation, form_deployment, analysis_assistant, uploads
+from app.api import question_generation, form_deployment, analysis_assistant, uploads
 from app.middleware.guardrails import GuardrailsMiddleware
 from app.infrastructure.config.settings import settings
 

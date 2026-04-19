@@ -1,4 +1,4 @@
-/**
+/*
  * FormDeployment.jsx
  *
  * Screen component responsible for:
@@ -19,7 +19,7 @@ export default function FormDeployment() {
 	const [messages, setMessages] = useState(() => [
 		{
 			role: "bot",
-			text: "Upload your survey CSV, then chat with me about status (did it deploy?) or feedback (what needs fixing before deployment)."
+			text: "Upload your academic survey CSV, then chat with me about status (did it deploy?) or feedback (what needs fixing before deployment)."
 		}
 	]);
 	const [input, setInput] = useState("");
@@ -46,16 +46,14 @@ export default function FormDeployment() {
 		setSelectedFile(null);
 		if (fileInputRef.current) fileInputRef.current.value = "";
 	}
-
+  
 	async function onSend(e) {
 		e?.preventDefault?.();
 		if (!canSend) return;
-
 		const message = input.trim();
 		setInput("");
 		setError("");
 		setMessages((prev) => [...prev, { role: "user", text: message }]);
-
 		setIsSending(true);
 		try {
 			const res = await sendDeploymentMessage(message, sessionId, {
@@ -133,88 +131,93 @@ export default function FormDeployment() {
 		}
 	}
 
-	return (
-		<div>
-			<div style={{ fontWeight: 700, marginBottom: 8 }}>Form Deployment</div>
-			<div className="small" style={{ marginBottom: 12 }}>
-				Deploy calls <code>POST /form-deployment/deploy</code>. Chat calls <code>POST /form-deployment/chat</code>.
+  return (
+    <section aria-labelledby="form-deployment-title">
+		<h2 className="pageHeading" id="form-deployment-title">
+			Form Deployment
+		</h2>
+
+		<div className="chat" aria-live="polite" aria-label="Form deployment conversation">
+			{messages.map((m, idx) => (
+			<div key={idx} className={`msg ${m.role}`}>
+				{m.text}
 			</div>
+			))}
+		</div>
 
-			<div className="chat" aria-live="polite">
-				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>{m.text}</div>
-				))}
+		<hr />
+
+		<form onSubmit={onSend} className="row">
+			<label htmlFor="form-deployment-message" className="sr-only">
+			Enter a deployment question or message
+			</label>
+			<input
+			id="form-deployment-message"
+			className="input"
+			value={input}
+			placeholder='Try: "Did it deploy?" or "What should I fix before deployment?"'
+			onChange={(e) => setInput(e.target.value)}
+			disabled={isSending}
+			/>
+			<button className="button" type="submit" disabled={!canSend}>
+			{isSending ? "Sending…" : "Send"}
+			</button>
+		</form>
+
+		<div style={{ marginTop: 12 }}>
+			<label htmlFor="csv-upload" className="small fileLabel">
+			Deploy your survey CSV (CSV only):
+			</label>
+			<div className="row">
+			<input
+				id="csv-upload"
+				className="input"
+				ref={fileInputRef}
+				type="file"
+				accept=".csv"
+				onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+				disabled={isDeploying}
+			/>
+			<button className="button" type="button" disabled={!canDeploy} onClick={onDeployUpload}>
+				{isDeploying ? "Deploying…" : "Deploy"}
+			</button>
 			</div>
+		</div>
 
-			<hr />
+		{lastDeployFilename ? (
+			<div className="small" style={{ marginTop: 8 }}>
+				Last deploy: <code>{lastDeployFilename}</code> ({lastDeployStatus})
+			</div>
+		) : null}
 
-			<form onSubmit={onSend} className="row">
+      	<div style={{ marginTop: 12}}>
+			<div className="small" style={{ marginBottom: 6 }}>
+				Retrieve Form Responses (via Form ID):
+			</div>
+			<div className="row">
 				<input
 					className="input"
-					value={input}
-					placeholder='Try: "Did it deploy?" or "What should I fix before deployment?"'
-					onChange={(e) => setInput(e.target.value)}
-					disabled={isSending}
+					placeholder="Enter Form ID..."
+					value={formIdInput}
+					onChange={(e) => setFormIdInput(e.target.value)}
+					disabled={isDownloading}
 				/>
-				<button className="button" type="submit" disabled={!canSend}>
-					{isSending ? "Sending…" : "Send"}
+				<button
+					className="button"
+					type="button"
+					disabled={isDownloading || !formIdInput}
+					onClick={onDownloadCSV}
+				>
+					{isDownloading ? "Getting Response CSV..." : "Download CSV"}
 				</button>
-			</form>
-
-			<div style={{ marginTop: 12 }}>
-				<div className="small" style={{ marginBottom: 6 }}>
-					Deploy your survey CSV (CSV only):
-				</div>
-				<div className="row">
-					<input
-						className="input"
-						ref={fileInputRef}
-						type="file"
-						accept=".csv"
-						onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-						disabled={isDeploying}
-					/>
-					<button className="button" type="button" disabled={!canDeploy} onClick={onDeployUpload}>
-						{isDeploying ? "Deploying…" : "Deploy"}
-					</button>
-				</div>
 			</div>
-
-			{lastDeployFilename ? (
-				<div className="small" style={{ marginTop: 8 }}>
-					Last deploy: <code>{lastDeployFilename}</code> ({lastDeployStatus})
-				</div>
-			) : null}
-
-			<div style={{ marginTop: 12}}>
-				<div className="small" style={{ marginBottom: 6 }}>
-					Retrieve Form Responses (via Form ID):
-				</div>
-				<div className="row">
-					<input
-						className="input"
-						placeholder="Enter Form ID..."
-						value={formIdInput}
-						onChange={(e) => setFormIdInput(e.target.value)}
-						disabled={isDownloading}
-					/>
-					<button
-						className="button"
-						type="button"
-						disabled={isDownloading || !formIdInput}
-						onClick={onDownloadCSV}
-					>
-						{isDownloading ? "Getting Response CSV..." : "Download CSV"}
-					</button>
-				</div>
-			</div>
-
-			{error ? (
-				<div className="small" style={{ marginTop: 8 }}>
-					Error: {error}
-				</div>
-			) : null}
-
 		</div>
+
+		{error ? (
+			<div className="alert" role="alert">
+				Error: {error}
+			</div>
+		) : null}
+		</section>
 	);
 }
