@@ -10,7 +10,6 @@ Responsible for:
 No domain logic should exist here.
 """
 
-# Example Code:
 from fastapi import APIRouter, UploadFile, File, HTTPException
 from app.domains.form_deployment.service import FormDeploymentService
 from app.domains.form_deployment.schemas import (
@@ -38,12 +37,12 @@ async def deploy_form(file: UploadFile = File(...)):
     content = await file.read()
     assert isinstance(file.filename, str)
     
-    # Get and return response data
+    # Get and return deployment data
     service = FormDeploymentService(get_llm_client())
     return service.attempt_deploy(filename=file.filename, file_bytes=content)
 
 @router.get("/retrieve", response_model=FormDeploymentRetrieveResponse)
 async def retrieve_form(formId: str):
-    # Get and return form data
+    # Get and return retrieval data
     service = FormDeploymentService(get_llm_client())
     return service.attempt_retrieve(formId=formId)

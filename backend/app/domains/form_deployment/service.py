@@ -24,11 +24,11 @@ from app.domains.form_deployment.graph import build_graph
 from app.infrastructure.llm.client import LLMClient
 from app.infrastructure.memory.checkpointers import get_checkpointer
 from app.middleware.file_validation import validate_csv_file, validate_csv_required_columns
-from app.domains.form_deployment.tools import (
-    form_deployment_check_csv_tool,
-    form_deployment_deploy_form_tool,
-    form_deployment_retrieve_form_tool,
-)
+
+from app.domains.form_deployment.tools.validation import form_deployment_check_questions_csv_tool
+from app.domains.form_deployment.tools.deployment import form_deployment_deploy_form_tool
+from app.domains.form_deployment.tools.retrieval import form_deployment_retrieve_form_tool
+
 from uuid import uuid4
 
 
@@ -54,7 +54,11 @@ class FormDeploymentService:
                     "message": msg,
                     "last_deploy_filename": request.last_deploy_filename,
                     "last_deploy_status": request.last_deploy_status,
+                    "last_deploy_formId": request.last_deploy_formId,
                     "last_deploy_feedback": request.last_deploy_feedback,
+                    "last_retrieve_formId": request.last_retrieve_formId,
+                    "last_retrieve_status": request.last_retrieve_status,
+                    "last_retrieve_feedback": request.last_retrieve_feedback,
                     "messages": [],
                 },
                 config={"configurable": {"thread_id": thread_id}},
@@ -68,7 +72,10 @@ class FormDeploymentService:
                 return FormDeploymentResponse(
                     message=(
                         f"Deterministic deployment status: {request.last_deploy_status}."
-                        + (f" Last file: {request.last_deploy_filename}." if request.last_deploy_filename else "")
+                        + (f"Last file: {request.last_deploy_filename}." if request.last_deploy_filename else "")
+                        + (f"Last deployed FormID: {request.last_deploy_formId}." if request.last_deploy_formId else "")
+                        + f"Deterministic retrieval status: {request.last_retrieve_status}."
+                        + (f"Last retrieved FormID: {request.last_retrieve_formId}." if request.last_retrieve_formId else "")
                         + feedback
                     ),
                     session_id=session_id,
@@ -104,7 +111,7 @@ class FormDeploymentService:
 
         # Check CSV file content
         try:
-            form_deployment_check_csv_tool(file_bytes)
+            form_deployment_check_questions_csv_tool(file_bytes)
         except ValueError as e:
             return FormDeploymentDeployResponse(
                 filename=filename,
@@ -130,7 +137,7 @@ class FormDeploymentService:
             status="success",
             formId=response["formId"],
             feedback=(
-                "Example deployment succeeded!\n"
+                "Deployment succeeded!\n"
                 f"Form ID: {response["formId"]}\n"
                 f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n"
                 f"Responder link: {response["responderUri"]}"
