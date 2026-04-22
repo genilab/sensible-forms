@@ -9,7 +9,6 @@ Defines:
 These models represent the data contracts for this domain only.
 """
 
-# Example Code: Form deployment is upload-to-deploy (deterministic) plus chat for follow-up instructions.
 from pydantic import BaseModel
 from typing import Optional
 from uuid import UUID
@@ -34,7 +33,11 @@ class FormDeploymentRequest(BaseModel):
     session_id: Optional[UUID] = None
     last_deploy_filename: Optional[str] = None
     last_deploy_status: Optional[str] = None
+    last_deploy_formId: Optional[str] = None
     last_deploy_feedback: Optional[str] = None
+    last_retrieve_formId: Optional[str] = None
+    last_retrieve_status: Optional[str] = None
+    last_retrieve_feedback: Optional[str] = None
 
 
 class FormDeploymentResponse(BaseModel):
@@ -46,6 +49,7 @@ class FormDeploymentDeployResponse(BaseModel):
     """Deterministic deployment attempt result.
     Reflects a real Google Forms deployment.
     """
+
     filename: str
     status: str
     formId: Optional[str] = None
@@ -53,7 +57,8 @@ class FormDeploymentDeployResponse(BaseModel):
 
 class FormDeploymentRetrieveResponse(BaseModel):
     """Deterministic retrieval attempt result."""
+    
     formId: str
     status: str
     feedback: str
-    content: Optional[str] = None
+    content: Optional[str] = None # Not retained

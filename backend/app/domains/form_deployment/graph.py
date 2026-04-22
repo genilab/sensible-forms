@@ -14,15 +14,19 @@ class FormDeploymentState(BaseState, total=False):
     message: str
     last_deploy_filename: str | None
     last_deploy_status: str | None
+    last_deploy_formId: str | None
     last_deploy_feedback: str | None
+    last_retrieve_formId: str | None
+    last_retrieve_status: str | None
+    last_retrieve_feedback: str | None
     response_message: str
 
 
 def build_graph(*, llm: LLMClient, checkpointer=None):
     graph = StateGraph(FormDeploymentState)
 
-    graph.add_node("build_messages", build_messages)
-    graph.add_node("invoke_llm", make_invoke_llm_node(llm))
+    graph.add_node("build_messages", build_messages) # pyright: ignore[reportArgumentType]
+    graph.add_node("invoke_llm", make_invoke_llm_node(llm)) # pyright: ignore[reportArgumentType]
 
     graph.set_entry_point("build_messages")
     graph.add_edge("build_messages", "invoke_llm")

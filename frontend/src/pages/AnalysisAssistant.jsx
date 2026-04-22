@@ -88,14 +88,13 @@ export default function AnalysisAssistant() {
 	}
 
 	return (
-		<div>
-			<div style={{ fontWeight: 700, marginBottom: 8 }}>Analysis Assistant</div>
-			<div className="small" style={{ marginBottom: 12 }}>
-				Calls <code>POST /analysis/uploads/</code> then <code>POST /analysis/chat</code>.
-			</div>
+		<section aria-labelledby="analysis-assistant-title">
+      		<h2 className="pageHeading" id="analysis-assistant-title">
+        		Analysis Assistant
+      		</h2>
 
 
-			<div className="chat" aria-live="polite">
+			<div className="chat" aria-live="polite" aria-label="Analysis assistant conversation">
 				{messages.map((m, idx) => (
 					<div key={idx} className={`msg ${m.role}`}>
 						{m.role === "bot" ? (
@@ -135,11 +134,11 @@ export default function AnalysisAssistant() {
 				</button>
 			</form>
 
-			{error ? (
-				<div className="small" style={{ marginTop: 8 }}>
-					Error: {error}
-				</div>
-			) : null}
-		</div>
-	);
+      {error ? (
+        <div className="alert" role="alert">
+          Error: {error}
+        </div>
+      ) : null}
+    </section>
+  );
 }

@@ -10,12 +10,10 @@
  * This layer isolates HTTP logic from UI components.
  */
 
-// Example Code:
-import { postJson } from "./http.js";
-import { postMultipart } from "./http.js";
+import { postJson, postMultipart } from "./http.js";
 
 /**
- * Upload a survey responses CSV.
+ * Upload a survey responses CSV. 
  * @param {File} file
  * @returns {Promise<{filename: string, file_id: string}>}
  */
