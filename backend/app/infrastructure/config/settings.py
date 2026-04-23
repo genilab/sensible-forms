@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     OPENAI_BASE_URL: str | None = Field(default=None, env="OPENAI_BASE_URL")
     OPENAI_MODEL: str = Field(default="gemini-3-pro-preview")
 
+    # Cookie security (must be True in production & False in local; defaults to True)
+    COOKIE_SECURE: bool = Field(default=True, env="COOKIE_SECURE")
+
     # Comma-separated list of allowed origins.
     CORS_ALLOW_ORIGINS: str = Field(
         default_factory=_default_cors_origins,

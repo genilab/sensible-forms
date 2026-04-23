@@ -20,6 +20,7 @@ From the repo root:
        - (You may set both if your backend is configured to support multiple providers.)
 4. Optional: enable Google Forms API calls. 
   - Place `client_secrets.json` into backend directory
+  - Add `COOKIE_SECURE=False` to `.env` (defaults to `True` for live deployment)
 5. Start the API (pick one):
   - From repo root: `uvicorn app.main:app --app-dir backend --reload`
   - From `backend/`: `uvicorn app.main:app --reload`
@@ -47,6 +48,10 @@ Windows note: if `npm install` is blocked by PowerShell execution policy, you ca
 
 - `POST /analysis/`
 - `POST /question-generation/`
-- `POST /form-deployment/deploy`
 - `POST /form-deployment/chat`
+- `POST /form-deployment/deploy`
 - `GET /form-deployment/retrieve?formId=${formId}`
+- `GET /auth/start`
+- `GET /auth/callback`
+- `GET /auth/logout`
+- `GET /auth/status`

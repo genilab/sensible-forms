@@ -58,6 +58,23 @@ The example frontend persists a UUID per page (domain) using `localStorage` (see
   - Multipart form-data file upload (CSV only)
   - Response: `{ "filename": string }`
 
+- `GET /auth/start`
+  - Authorization path start
+  - Response: RedirectResponse object
+
+- `GET /auth/callback`
+  - Authorization path end
+  - Request: FastAPI Request object
+  - Response: RedirectResponse object
+
+- `GET /auth/logout`
+  - Request: FastAPI Response object
+  - Response: `{"status": "ok"}`
+
+- `GET /auth/status`
+  - Request: FastAPI Request object
+  - Response: `{"isAuth": boolean}`
+
 ## Sequence diagrams
 
 ### Question generation
@@ -142,6 +159,7 @@ sequenceDiagram
   - Set `GEMINI_API_KEY` in the repo-root `.env` file as `GOOGLE_API_KEY`.
 4. Optional: enable Google Forms API calls. 
   - Place `client_secrets.json` into backend directory
+  - Add `COOKIE_SECURE=False` to `.env` (defaults to `True` for live deployment)
 5. Start the API (pick one):
   - From repo root: `uvicorn app.main:app --app-dir backend --reload`
   - From `backend/`: `uvicorn app.main:app --reload`

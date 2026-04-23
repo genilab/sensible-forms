@@ -51,24 +51,43 @@ def test_all_sample_question_files():
         assert r.json()["filename"] == f.name
 
 
+# NOTE: The following tests require some setup to begin
+#   1. Visit http://localhost:8000/auth/start in a browser and complete the consent flow
+#   2. After redirect, copy the "refresh_token" value and paste into "REFRESH_TOKEN = ..." below
+REFRESH_TOKEN = ...
+
+
+def test_authentication():
+    assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
+    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
+    r = client.get("/auth/status", headers=headers)
+    assert r.status_code == 200
+    assert r.json()["isAuth"], r.json()
+
+
 # View at https://docs.google.com/forms/u/0/
 def test_single_deployment():
+    assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
+    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
     file = os.listdir(QUESTION_FILE_DIR)[0]
     f = open(QUESTION_FILE_DIR+file, 'rb')
     files = {"file": (f.name, f, "text/csv")}
-    r = client.post("/form-deployment/deploy", files=files)
+    r = client.post("/form-deployment/deploy", files=files, headers=headers)
     assert r.json()["status"] == "success", str(r.json())
 
 
 # View at https://docs.google.com/forms/u/0/
 # CAUTION: SLOW (~400s / ~6:40)
+# NOTE: This test overwrites formId_sample.csv with new Form ID values
 @pytest.mark.asyncio
 async def test_all_deployments():
+    assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
+    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
     formId_samples = []
     for file in os.listdir(QUESTION_FILE_DIR):
         f = open(QUESTION_FILE_DIR+file, 'rb')
         files = {"file": (f.name, f, "text/csv")}
-        r = client.post("/form-deployment/deploy", files=files)
+        r = client.post("/form-deployment/deploy", files=files, headers=headers)
         if file in INVALID_QUESTION_FILES:
             assert r.json()["status"] == "error"
         else: 
@@ -80,15 +99,22 @@ async def test_all_deployments():
         writer.writerow(formId_samples)
 
 
-# NOTE: Forms must have at least one response for successful retrieval
+# NOTE: The following tests require some setup to begin
+#  1. Visit https://docs.google.com/forms/u/0/
+#  2. Provide at least 1 response for each form generated in the previous test
+
+
 def test_single_retrieval():
+    assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
+    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
     formId = formId_samples[0]
-    r = client.get("/form-deployment/retrieve", params={"formId": formId})
+    r = client.get("/form-deployment/retrieve", params={"formId": formId}, headers=headers)
     assert r.json()["status"] == "success", str(r.json())
 
 
-# NOTE: Forms must have at least one response for successful retrieval
 def test_all_retrievals():
+    assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
+    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
     for formId in formId_samples:
-        r = client.get("/form-deployment/retrieve", params={"formId": formId})
+        r = client.get("/form-deployment/retrieve", params={"formId": formId}, headers=headers)
         assert r.json()["status"] == "success", str(r.json())
