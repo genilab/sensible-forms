@@ -46,7 +46,8 @@ Windows note: if `npm install` is blocked by PowerShell execution policy, you ca
 
 ## Endpoints this UI calls
 
-- `POST /analysis/`
+- `POST /analysis/uploads/`
+- `POST /analysis/chat`
 - `POST /question-generation/`
 - `POST /form-deployment/chat`
 - `POST /form-deployment/deploy`

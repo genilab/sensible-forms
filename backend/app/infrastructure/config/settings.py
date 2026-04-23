@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
     # For OpenAI-compatible mode, set this to the gateway's OpenAI route.
     OPENAI_BASE_URL: str | None = Field(default=None, env="OPENAI_BASE_URL")
-    OPENAI_MODEL: str = Field(default="gemini-3-pro-preview")
+    OPENAI_MODEL: str = Field(default="gemini-2.5-flash")
 
     # Cookie security (must be True in production & False in local; defaults to True)
     COOKIE_SECURE: bool = Field(default=True, env="COOKIE_SECURE")
