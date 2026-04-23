@@ -15,13 +15,30 @@ from uuid import UUID
 from pydantic import BaseModel
 
 
-class AnalysisRequest(BaseModel):
-    data_summary: str
+class AnalysisChatRequest(BaseModel):
     # Stable identifier for conversational context across multiple calls.
-    # If omitted, the backend will generate one and return it in the response.
     session_id: Optional[UUID] = None
 
+    # The user's chat message.
+    message: str
 
-class AnalysisResponse(BaseModel):
-    insights: str
+    # When true, the backend will profile the uploaded CSV and proactively suggest analyses.
+    upload_mode: bool = False
+
+    # Identifier returned by POST /analysis/uploads/ (canonical).
+    # `/uploads/` is a legacy alias (deprecated) that returns the same `file_id` shape.
+    file_id: Optional[str] = None
+
+    # Legacy support (if a client only has a filename).
+    filename: Optional[str] = None
+
+
+class AnalysisChatResponse(BaseModel):
     session_id: UUID
+    message: str
+
+    # Convenience echo for the client.
+    active_file_id: Optional[str] = None
+
+    # Compact dataset profile (no raw rows). Present after upload_mode profiling.
+    dataset_profile: Optional[dict] = None

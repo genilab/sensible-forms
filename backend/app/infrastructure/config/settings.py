@@ -51,7 +51,7 @@ class Settings(BaseSettings):
 
     # For OpenAI-compatible mode, set this to the gateway's OpenAI route.
     OPENAI_BASE_URL: str | None = Field(default=None, env="OPENAI_BASE_URL")
-    OPENAI_MODEL: str = Field(default="gemini-3-pro-preview")
+    OPENAI_MODEL: str = Field(default="gemini-2.5-flash")
 
     # Comma-separated list of allowed origins.
     CORS_ALLOW_ORIGINS: str = Field(

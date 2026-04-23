@@ -47,6 +47,7 @@ class OpenAICompatibleClient(LLMClient):
             ) from e 
         
         self._model = model or settings.OPENAI_MODEL
+        self._base_url = resolved_base_url
         # ChatOpenAI follows OpenAI semantics: base_url + /chat/completions.
         # This is compatible with OpenUI/OwlChat when base_url is set to the gateway's OpenAI route.
         self._llm = ChatOpenAI(
@@ -79,4 +80,15 @@ class OpenAICompatibleClient(LLMClient):
             return content if isinstance(content, str) else str(result)
 
         except Exception as e:
-            raise RuntimeError(f"OpenAI-compatible generation failed: {str(e)}")
+            # Common failure mode for OpenAI-compatible gateways: the configured model
+            # name is accepted as a "group" but maps to an underlying versioned model
+            # (sometimes a *-preview) that your project doesn't have access to.
+            raise RuntimeError(
+                "OpenAI-compatible generation failed. "
+                f"base_url={self._base_url!r} model={self._model!r}. "
+                "If you are using an OpenAI-compatible gateway (e.g., LiteLLM / OwlChat / OpenUI), "
+                "it may map a model group like 'gemini-3-pro' to an underlying provider model like "
+                "'gemini-3-pro-preview'. In that case you must either (1) choose a model you have access to "
+                "by setting OPENAI_MODEL in your .env, or (2) request access to that underlying model in your provider. "
+                f"Original error: {e}"
+            ) from e

@@ -45,6 +45,7 @@ app.include_router(question_generation.router)
 app.include_router(form_deployment.router)
 app.include_router(analysis_assistant.router)
 app.include_router(uploads.router)
+app.include_router(uploads.analysis_router)
 
 # Health check endpoint for monitoring and testing purposes.
 @app.get("/health")

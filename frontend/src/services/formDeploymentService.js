@@ -10,7 +10,6 @@
  * Keeps networking concerns separate from UI logic.
  */
 
-// Example Code:
 import { postJson, postMultipart, getJson } from "./http.js";
 
 /**

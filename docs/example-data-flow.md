@@ -35,9 +35,9 @@ The example frontend persists a UUID per page (domain) using `localStorage` (see
   - Request: `{ "topic": string, "session_id"?: string }`
   - Response: `{ "questions": string[], "session_id": string }`
 
-- `POST /analysis/`
-  - Request: `{ "data_summary": string, "session_id"?: string }`
-  - Response: `{ "insights": string, "session_id": string }`
+- `POST /analysis/chat`
+  - Request: `{ "message": string, "session_id"?: string, "upload_mode"?: boolean, "file_id"?: string }`
+  - Response: `{ "message": string, "session_id": string, "active_file_id"?: string, "dataset_profile"?: object }`
 
 - `POST /form-deployment/`
   - (Alias) Chat endpoint
@@ -54,9 +54,13 @@ The example frontend persists a UUID per page (domain) using `localStorage` (see
   - Request: `{ "message": string, "session_id"?: string, "last_deploy_filename"?: string|null, "last_deploy_status"?: string|null, "last_deploy_feedback"?: string|null }`
   - Response: `{ "message": string, "session_id": string }`
 
-- `POST /uploads/`
+- `POST /analysis/uploads/` (canonical)
   - Multipart form-data file upload (CSV only)
-  - Response: `{ "filename": string }`
+  - Response: `{ "filename": string, "file_id": string }`
+
+- `POST /uploads/` (legacy alias; deprecated)
+  - Multipart form-data file upload (CSV only)
+  - Response: `{ "filename": string, "file_id": string }`
 
 ## Sequence diagrams
 
@@ -90,14 +94,14 @@ sequenceDiagram
   participant AG as Agent
   participant LLM as LLMClient
 
-  UI->>API: POST /analysis/ {data_summary, session_id?}
-  API->>SVC: analyze(AnalysisRequest)
-  SVC->>AG: run(data_summary)
+  UI->>API: POST /analysis/chat {message, session_id?, upload_mode?, file_id?}
+  API->>SVC: chat(AnalysisChatRequest)
+  SVC->>AG: run(message, file_id?)
   AG->>LLM: invoke(prompt)
   LLM-->>AG: text
-  AG-->>SVC: insights(str)
-  SVC-->>API: AnalysisResponse
-  API-->>UI: {insights, session_id}
+  AG-->>SVC: message(str)
+  SVC-->>API: AnalysisChatResponse
+  API-->>UI: {message, session_id}
 ```
 
 ### Form deployment
