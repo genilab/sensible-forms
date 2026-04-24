@@ -35,8 +35,8 @@ export default function App() {
   const [largeTargets, setLargeTargets] = useState(false);
   const [showAccessibility, setShowAccessibility] = useState(false);
 
-  // Authentication states
-  const {isAuth, loading, login, logout} = useAuth();
+  // Authentication components
+  const {isAuth, loading, refresh, login, logout} = useAuth();
 
   const ActiveComponent = useMemo(() => PAGES[active].Component, [active]);
 
@@ -79,6 +79,25 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem("sf_large_targets", String(largeTargets));
   }, [largeTargets]);
+
+  // Update authentication state after returning to window
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    function handleFocus() {
+      try {
+        refresh();
+      } catch (err) {
+        console.error("refresh on focus error", err);
+      }
+    }
+
+    window.addEventListener("focus", handleFocus);
+    if (document.hasFocus()) handleFocus();
+    return () => {
+      window.removeEventListener("focus", handleFocus);
+    };
+  }, [refresh]);
 
   const accessibilityClasses = [
     largeText ? "large-text" : "",

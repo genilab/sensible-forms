@@ -83,7 +83,8 @@ def auth_callback(request: Request):
     if not creds.refresh_token:
         raise HTTPException(400, "Missing refresh token.")
     
-    redirect = RedirectResponse(url=FRONTEND_ROUTE)
+    # Query param "?oauth=complete" enables detecting popup flow completion
+    redirect = RedirectResponse(url=f"{FRONTEND_ROUTE}?oauth=complete")
     redirect.delete_cookie("oauth_flow", path="/")
     redirect.set_cookie(
         key=COOKIE_NAME,
