@@ -44,6 +44,13 @@ export default function FormDeployment() {
 	const canDeploy = useMemo(() => selectedFile && !isDeploying, [selectedFile, isDeploying]);
 	const fileInputRef = useRef(null)
 
+	// Custom link renderer to open chat links in a new tab
+	const LinkRenderer = ({ href, children, ...props}) => {
+		return (
+			<a href={href} target="_blank" rel="noopener noreferrer" {...props}>{children}</a>
+		);
+	};
+
 	// Reset input box for file upload (patches a browser inconsistency)
 	function resetFileInput() {
 		setSelectedFile(null);
@@ -146,7 +153,8 @@ export default function FormDeployment() {
 					{m.role === "bot" ? (
 						<ReactMarkdown 
 						className = "markdown"
-						remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+						remarkPlugins={[remarkGfm]}
+						components={{ a: LinkRenderer }}>{m.text}</ReactMarkdown>
 					) : (
 						m.text
 					)}
