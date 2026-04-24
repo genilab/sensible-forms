@@ -21,7 +21,7 @@ export async function getAuthStatus() {
  */
 export function handleLogin() {
 	//window.location.href = `${getApiBaseUrl()}/auth/start`;
-    window.open(`${getApiBaseUrl()}/auth/start`, "_blank");
+    window.open(`${getApiBaseUrl()}/auth/start`, "_blank", "noopener,noreferrer");
 }
 
 /**
