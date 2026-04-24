@@ -20,7 +20,8 @@ export async function getAuthStatus() {
  * Redirect to /auth/start route
  */
 export function handleLogin() {
-	window.location.href = `${getApiBaseUrl()}/auth/start`;
+	//window.location.href = `${getApiBaseUrl()}/auth/start`;
+    window.open(`${getApiBaseUrl()}/auth/start`, "_blank");
 }
 
 /**
