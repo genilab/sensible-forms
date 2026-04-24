@@ -171,6 +171,23 @@ body {
 }
 
 /* Chat */
+
+/* Ensuring that Markdown styles override when needed*/
+.markdown > * {
+  all: revert;
+}
+
+/* Critical for correct text display */
+.markdown {
+  white-space: normal; 
+  overflow-wrap: break-word
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+
 .chat {
   display: flex;
   flex-direction: column;
@@ -180,15 +197,27 @@ body {
   background: var(--surface-2);
   border-radius: var(--radius);
   min-height: 260px;
+  max-height: 700px;
+  max-width: 700px;
+  overflow-y: auto;
 }
 
 .msg {
-  max-width: 80%;
+  max-width: 90%;
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 10px 12px;
   white-space: pre-wrap;
   box-shadow: 0 6px 14px rgba(15, 23, 42, 0.06);
+}
+
+/* Formatting for code blocks */
+.msg pre {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border-radius: 6px;
+  background: #e5e7eb;
+  overflow-x: auto;
 }
 
 .msg.user {
@@ -213,6 +242,7 @@ body {
   display: flex;
   gap: 10px;
   align-items: stretch;
+  margin: 10px;
 }
 
 .row > * { flex: 1; }
@@ -647,10 +677,22 @@ hr {
   border-color: #64748b;
 }
 
+.dark-mode .msg.bot a:link {
+  color: #d4af37;
+}
+
+.dark-mode .msg.bot a:visited {
+  color: #cbd5e1;
+}
+
 .dark-mode .msg.user {
   background: #d4af37;
   color: #111111;
   border-color: #c49a1d;
+}
+
+.dark-mode .msg pre {
+  background: rgba(255,255,255,0.06)
 }
 
 .dark-mode .toggleRow,
