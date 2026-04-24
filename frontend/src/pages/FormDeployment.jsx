@@ -15,6 +15,7 @@ import remarkGfm from "remark-gfm";
 
 import { sendDeploymentMessage, deployFormCsv, getFormResponses } from "../services/formDeploymentService.js";
 import { getOrCreateSessionId } from "../services/session.js";
+import { LoadingDots } from "../App.jsx"
 
 export default function FormDeployment() {
 	const sessionId = useMemo(() => getOrCreateSessionId("form_deployment_session_id"), []);
@@ -139,17 +140,19 @@ export default function FormDeployment() {
 			Form Deployment
 		</h2>
 
-			<div className="chat" aria-live="polite">
-				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>
-						{m.role === "bot" ? (
-							<ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
-						) : (
-							m.text
-						)}
-					</div>
-				))}
-			</div>
+		<div className="chat" aria-live="polite">
+			{messages.map((m, idx) => (
+				<div key={idx} className={`msg ${m.role}`}>
+					{m.role === "bot" ? (
+						<ReactMarkdown 
+						className = "markdown"
+						remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+					) : (
+						m.text
+					)}
+				</div>
+			))}
+		</div>
 
 		<hr />
 
@@ -166,7 +169,7 @@ export default function FormDeployment() {
 			disabled={isSending}
 			/>
 			<button className="button" type="submit" disabled={!canSend}>
-			{isSending ? "Sending…" : "Send"}
+			{isSending ? <LoadingDots text = "Sending" active = {isSending} /> : "Send"}
 			</button>
 		</form>
 
@@ -185,7 +188,7 @@ export default function FormDeployment() {
 				disabled={isDeploying}
 			/>
 			<button className="button" type="button" disabled={!canDeploy} onClick={onDeployUpload}>
-				{isDeploying ? "Deploying…" : "Deploy"}
+				{isDeploying ? <LoadingDots text = "Deploying" active = {isDeploying} /> : "Deploy"}
 			</button>
 			</div>
 		</div>
@@ -214,7 +217,7 @@ export default function FormDeployment() {
 					disabled={isDownloading || !formIdInput}
 					onClick={onDownloadCSV}
 				>
-					{isDownloading ? "Getting Response CSV..." : "Download CSV"}
+					{isDownloading ? <LoadingDots text = "Getting Response CSV" active = {isDownloading} /> : "Download CSV"}
 				</button>
 			</div>
 		</div>

@@ -144,9 +144,9 @@ class FormDeploymentService:
             status="success",
             formId=response["formId"],
             feedback=(
-                "Deployment succeeded!\n"
-                f"Form ID: {response["formId"]}\n"
-                f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n"
+                "\nDeployment succeeded!\n\n"
+                f"Form ID: {response["formId"]}\n\n"
+                f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n\n"
                 f"Responder link: {response["responderUri"]}"
             ),
         )

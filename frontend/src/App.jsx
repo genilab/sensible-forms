@@ -231,3 +231,26 @@ export default function App() {
     </div>
   );
 }
+
+// Provides animations for buttons to show the system has not frozen while working.
+// Developed with assistance from Microsoft Copilot
+export function LoadingDots({ text = "Thinking", active}) {
+  const [dots, setDots] = useState(".");
+
+  useEffect(() => {
+    if (!active) return;
+
+    const interval = setInterval(() => {
+      setDots(prev => (prev.length === 3 ? "." : prev + "."));
+    }, 500); // Speed of the animation
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return(
+    <span>
+      {text}
+      {dots}
+    </span>
+  );
+}
