@@ -40,7 +40,7 @@ SYSTEM_PROMPT = """
     - “question_id” should be unique within the survey (e.g., Q1, Q2).
     - "question_text" should have the question.
         - Enclose the question_text in double quotation marks
-    - “question_type” should specify the format (choiceQuestion, checkboxQuestion, scaleQuestion, textQuestion, dateQuestion, timeQuestion).
+    - “question_type” should specify the format (choiceQuestion, scaleQuestion, textQuestion, dateQuestion, timeQuestion).
     - “response_options” should list the response choices when applicable; leave blank if not required. 
         - For choiceQuestion, response options should be separated by a semi-colon. If there is an "Other" option, "is_other" should be TRUE (otherwise
             FALSE). "choice_type" should be RADIO, CHECKBOX, or DROP_DOWN depending on the type of choiceQuestion. For example, a multiple choice question where only one
@@ -48,8 +48,7 @@ SYSTEM_PROMPT = """
             the options should be provided as a drop-down menu. Any scale fields should be left blank.
             - Enclose the response_options text in double quotation marks.
         - For a scaleQuestion, response_options should be blank with the low value in scale_min, the high value in scale_max, the descriptor for the low value in scale_min_label, 
-            and the descriptor for the high value in scale_max_label. 
-        - For a textQuestion, it should have "#paragraph".
+            and the descriptor for the high value in scale_max_label.
     - "is_other" should be TRUE or FALSE depending on if the question has an "Other" option
     - "choice_type" 
     - "required" should contain either TRUE or FALSE depending on if the question is required.

@@ -195,7 +195,7 @@ export default function QuestionGeneration() {
 			//	columns
 			const fixedCsv = fixMissingColumn(rawCsv, 7, 4);
 			// Downloading the CSV
-			const blob = new Blob(["\ufeff" + fixedCsv], { type: 'text/csv;charset=utf-8;' });
+			const blob = new Blob([fixedCsv], { type: 'text/csv;charset=utf-8;' });
 			const url = URL.createObjectURL(blob);
 			const link = document.createElement("a");
 			link.href = url;
