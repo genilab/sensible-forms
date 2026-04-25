@@ -28,6 +28,7 @@ from app.middleware.file_validation import validate_csv_file, validate_csv_requi
 from app.domains.form_deployment.tools.validation import form_deployment_check_questions_csv_tool
 from app.domains.form_deployment.tools.deployment import form_deployment_deploy_form_tool
 from app.domains.form_deployment.tools.retrieval import form_deployment_retrieve_form_tool
+from app.domains.form_deployment.tools.oauth import get_credentials
 
 from uuid import uuid4
 
@@ -85,9 +86,8 @@ class FormDeploymentService:
                 session_id=session_id,
             )
 
-    def attempt_deploy(self, *, filename: str, file_bytes: bytes) -> FormDeploymentDeployResponse:
+    def attempt_deploy(self, *, filename: str, file_bytes: bytes, refresh_token: str | None) -> FormDeploymentDeployResponse:
         """Deterministically validate a CSV and return a deployment status."""
-
         # Check CSV file structure
         try:
             validate_csv_file(filename, file_size_bytes=len(file_bytes))
@@ -119,11 +119,18 @@ class FormDeploymentService:
                 feedback=str(e),
             )
 
-        # Additional logic for deployment
-        response = None
+        # Get credentials
+        if not refresh_token:
+            return FormDeploymentDeployResponse(
+                filename=filename,
+                status="error",
+                feedback='Please press "Login to Google Forms".'
+            )
+        creds = get_credentials(refresh_token=refresh_token)
+
+        # Deployment logic
         try:
-            response = form_deployment_deploy_form_tool(filename, file_bytes)
-            ### In the near future, some measure to store formId data for the user should be added
+            response = form_deployment_deploy_form_tool(filename, file_bytes, creds)
         except Exception as e:
             return FormDeploymentDeployResponse(
                 filename=filename,
@@ -134,20 +141,23 @@ class FormDeploymentService:
         # Successfull deployment return
         return FormDeploymentDeployResponse(
             filename=filename,
-            status="success\n",
+            status="success",
             formId=response["formId"],
             feedback=(
-                "Deployment succeeded!\n\n"
+                "\nDeployment succeeded!\n\n"
                 f"Form ID: {response["formId"]}\n\n"
                 f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n\n"
                 f"Responder link: {response["responderUri"]}"
             ),
         )
 
-    def attempt_retrieve(self, *, formId: str) -> FormDeploymentRetrieveResponse:
+    def attempt_retrieve(self, *, formId: str, refresh_token: str) -> FormDeploymentRetrieveResponse:
         """Deterministically access a deployed form and return responses."""
+        # Get credentials
+        creds = get_credentials(refresh_token)
+        
         try:
-            csvContent = form_deployment_retrieve_form_tool(formId)
+            csvContent = form_deployment_retrieve_form_tool(formId, creds)
             assert isinstance(csvContent, str)
         except Exception as e:
             return FormDeploymentRetrieveResponse(

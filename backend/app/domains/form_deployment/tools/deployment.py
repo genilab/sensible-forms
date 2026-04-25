@@ -12,8 +12,7 @@ import pandas as pd
 import numpy as np
 
 from googleapiclient.discovery import build
-
-from app.domains.form_deployment.tools.oauth import get_credentials
+from google.oauth2.credentials import Credentials
 
 
 # Attempt to decode questions by type
@@ -94,6 +93,7 @@ def format_question(index, row) -> dict:
 def form_deployment_deploy_form_tool(
     filename: str,
     file_bytes: bytes,
+    creds: Credentials | None = None,
     *,
     encoding: str = "utf-8",
 ) -> dict:
@@ -101,6 +101,8 @@ def form_deployment_deploy_form_tool(
     Returns the form response dictionary."""
     if not file_bytes:
         raise ValueError("Uploaded CSV is empty. Add a header row and at least one question.")
+    if not creds:
+        raise ValueError("No credentials provided.")
 
     # Get CSV data
     text = file_bytes.decode(encoding, errors="replace")
@@ -118,12 +120,6 @@ def form_deployment_deploy_form_tool(
     
     # Format questions as list of JSON-like dicts
     questions = [format_question(index, row) for index, row in data.iterrows()]
-
-    # Get user credentials
-    try: 
-        creds = get_credentials()
-    except ValueError as e: 
-        raise ValueError(e)
 
     with build("forms", "v1", credentials=creds) as form_service: 
         # Request body for creating a form
