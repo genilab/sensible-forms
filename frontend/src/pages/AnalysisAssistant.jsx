@@ -17,6 +17,7 @@ import remarkGfm from "remark-gfm";
 
 import { chatAnalysis, uploadSurveyCsv } from "../services/analysisAssistant.js";
 import { getOrCreateSessionId } from "../services/session.js";
+import { LoadingDots } from "../App.jsx"
 
 export default function AnalysisAssistant() {
 	const sessionId = useMemo(() => getOrCreateSessionId("analysis_assistant_session_id"), []);
@@ -96,13 +97,15 @@ export default function AnalysisAssistant() {
 
 			<div className="chat" aria-live="polite" aria-label="Analysis assistant conversation">
 				{messages.map((m, idx) => (
-					<div key={idx} className={`msg ${m.role}`}>
-						{m.role === "bot" ? (
-							<ReactMarkdown remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
-						) : (
-							m.text
-						)}
-					</div>
+				<div key={idx} className={`msg ${m.role}`}>
+					{m.role === "bot" ? (
+						<ReactMarkdown 
+						className = "markdown"
+						remarkPlugins={[remarkGfm]}>{m.text}</ReactMarkdown>
+					) : (
+						m.text
+					)}
+				</div>
 				))}
 			</div>
 
@@ -117,7 +120,7 @@ export default function AnalysisAssistant() {
 					disabled={isLoading}
 				/>
 				<button className="button" type="submit" disabled={!canSend}>
-					{isLoading ? "Analyzing…" : "Send"}
+					{isLoading ? <LoadingDots text = "Analyzing" active = {isLoading} /> : "Send"}
 				</button>
 			</form>
 
@@ -130,7 +133,7 @@ export default function AnalysisAssistant() {
 					disabled={isLoading}
 				/>
 				<button className="button" type="submit" disabled={!selectedFile || isLoading}>
-					{isLoading ? "Uploading…" : "Upload CSV"}
+					{isLoading ? <LoadingDots text = "Uploading" active = {isLoading} /> : "Upload CSV"}
 				</button>
 			</form>
 

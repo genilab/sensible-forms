@@ -5,6 +5,8 @@ LLM provider credentials are configured.
 
 This keeps the example data-flow runnable end-to-end without requiring
 API keys or third-party SDK installs.
+
+Portions of this code were developed with assistance from Microsoft Copilot.
 """
 
 from __future__ import annotations
@@ -55,6 +57,7 @@ class MockLLMClient(LLMClient):
                 ]
             )
 
+        # Question Generation chat deterministic
         if "topic:" in lowered and "survey questions" in lowered:
             return "\n".join(
                 [
@@ -63,6 +66,23 @@ class MockLLMClient(LLMClient):
                     "- How satisfied are you with the current process?",
                     "- What would success look like in 3 months?",
                 ]
+            )
+        
+        # Question Generation CSV request with a code block
+        if "CSV format" in lowered and "question" in lowered:
+            return "\n".join(
+                ["Here is your CSV:"
+                "```csv"
+                "question_id,question_text,options"
+                "Q1,What color is the sky?,Blue;Green;Purple;Orange"]
+            )
+        
+        # Question Generation CSV request without a code block
+        if "CSV format" in lowered and "without a code block" in lowered:
+            return "\n".join(
+                ["Here is your CSV:"
+                "question_id,question_text,options"
+                "Q1,What color is the sky?,Blue;Green;Purple;Orange"]
             )
 
         # Form deployment chat: provide deterministic-feeling guidance.

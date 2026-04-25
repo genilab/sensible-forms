@@ -134,12 +134,12 @@ class FormDeploymentService:
         # Successfull deployment return
         return FormDeploymentDeployResponse(
             filename=filename,
-            status="success",
+            status="success\n",
             formId=response["formId"],
             feedback=(
-                "Deployment succeeded!\n"
-                f"Form ID: {response["formId"]}\n"
-                f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n"
+                "Deployment succeeded!\n\n"
+                f"Form ID: {response["formId"]}\n\n"
+                f"Publisher link: https://docs.google.com/forms/d/{response["formId"]}/edit\n\n"
                 f"Responder link: {response["responderUri"]}"
             ),
         )
