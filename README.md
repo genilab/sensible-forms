@@ -76,7 +76,8 @@ To allow for deployment on Google Forms, you must set up a client_secrets.json f
 pip install -r requirements.txt
 ```
 
-3. Add the client_secrets.json file to the backend folder 
+3. Add the client_secrets.json file to the backend folder.
+
 4. Start the API from the repo root:
 
 ```bash

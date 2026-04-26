@@ -18,7 +18,7 @@ load_dotenv(find_dotenv(usecwd=True), override=False)
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.api import question_generation, form_deployment, analysis_assistant, uploads
+from backend.app.api import question_generation, form_deployment, analysis_assistant, uploads, auth
 from app.middleware.guardrails import GuardrailsMiddleware
 from app.infrastructure.config.settings import settings
 
@@ -46,6 +46,7 @@ app.include_router(form_deployment.router)
 app.include_router(analysis_assistant.router)
 app.include_router(uploads.router)
 app.include_router(uploads.analysis_router)
+app.include_router(auth.router)
 
 # Health check endpoint for monitoring and testing purposes.
 @app.get("/health")

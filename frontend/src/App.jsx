@@ -5,6 +5,8 @@ import AnalysisAssistant from "./pages/AnalysisAssistant.jsx";
 import QuestionGeneration from "./pages/QuestionGeneration.jsx";
 import FormDeployment from "./pages/FormDeployment.jsx";
 
+import { useAuth } from "./services/authService.js";
+
 const PAGES = {
   questionGeneration: {
     label: "Question Generation",
@@ -32,6 +34,9 @@ export default function App() {
   const [lineSpacing, setLineSpacing] = useState(false);
   const [largeTargets, setLargeTargets] = useState(false);
   const [showAccessibility, setShowAccessibility] = useState(false);
+
+  // Authentication states
+  const {isAuth, loading, login, logout} = useAuth();
 
   const ActiveComponent = useMemo(() => PAGES[active].Component, [active]);
 
@@ -199,6 +204,20 @@ export default function App() {
                   </label>
                 </div>
               )}
+
+              {/*Login/Logout Button for Google Authentication*/}
+              <div style={{ marginTop: 12 }}>
+                <button
+                  className="sideItem"
+                  type="button"
+                  onClick={isAuth ? logout : login}
+                  disabled={loading}
+                >
+                  <span className="sideIcon" aria-hidden="true">🇬</span>
+                  <span className="sideLabel">{isAuth ? "Logout" : "Login to Google Forms"}</span>
+                </button>
+              </div>
+              
             </div>
           </aside>
 
@@ -213,8 +232,7 @@ export default function App() {
   );
 }
 
-// Provides animations for buttons to show the system has not
-//  frozen while working.
+// Provides animations for buttons to show the system has not frozen while working.
 // Developed with assistance from Microsoft Copilot
 export function LoadingDots({ text = "Thinking", active}) {
   const [dots, setDots] = useState(".");

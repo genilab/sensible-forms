@@ -11,8 +11,7 @@ import io
 import csv
 
 from googleapiclient.discovery import build
-
-from app.domains.form_deployment.tools.oauth import get_credentials
+from google.oauth2.credentials import Credentials
 
 
 # Convert response and question Data to CSV
@@ -53,22 +52,19 @@ def convert_to_csv_str(responses: list, questions: dict) -> str:
     return out_str.getvalue()
 
 
-# Deploy a Form Using Google Forms API
+# Retrieve a Form Using Google Forms API
 def form_deployment_retrieve_form_tool(
     formId: str,
+    creds: Credentials | None = None,
     *,
     encoding: str = "utf-8",
 ) -> str:
     """Retrieve remote form data as a CSV file. 
     Returns a response dictionary containing the CSV content."""
-    if not formId: 
+    if not formId:
         raise ValueError("No Form ID detected. Enter a valid Form ID.")
-
-    # Get user credentials
-    try: 
-        creds = get_credentials()
-    except ValueError as e: 
-        raise ValueError(e)
+    if not creds:
+        raise ValueError("No credentials provided.")
 
     with build("forms", "v1", credentials=creds) as form_service: 
         # Get the responses of your specified form:

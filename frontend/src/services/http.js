@@ -1,10 +1,9 @@
 /**
  * http.js
  *
- * Minimal fetch helpers used by the example service modules.
+ * Minimal fetch helpers used by the service modules.
  */
 
-// Example Code:
 import { getApiBaseUrl } from "./apiBase.js";
 
 export async function postJson(path, body) {
@@ -13,6 +12,7 @@ export async function postJson(path, body) {
     headers: {
       "Content-Type": "application/json"
     },
+    credentials: "include",
     body: JSON.stringify(body)
   });
 
@@ -27,6 +27,7 @@ export async function postJson(path, body) {
 export async function postMultipart(path, formData) {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
+    credentials: "include",
     body: formData
   });
 
@@ -41,7 +42,8 @@ export async function postMultipart(path, formData) {
 export async function getJson(path) {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "GET",
-    headers: { "Acccept": "application/json" }
+    credentials: "include",
+    headers: { "Accept": "application/json" }
   });
 
   if (!res.ok) {

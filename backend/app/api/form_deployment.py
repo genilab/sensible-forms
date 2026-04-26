@@ -10,7 +10,7 @@ Responsible for:
 No domain logic should exist here.
 """
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import Request, APIRouter, UploadFile, File
 from app.domains.form_deployment.service import FormDeploymentService
 from app.domains.form_deployment.schemas import (
     FormDeploymentRequest,
@@ -32,17 +32,32 @@ def deployment_chat(request: FormDeploymentRequest):
 
 
 @router.post("/deploy", response_model=FormDeploymentDeployResponse)
-async def deploy_form(file: UploadFile = File(...)):
+async def deploy_form(file: UploadFile = File(...), request: Request = None): # pyright: ignore[reportArgumentType]
+    # Get refresh token
+    refresh_token = None
+    if request:
+        refresh_token = request.cookies.get("refresh_token")
+    
     # Read content and assert instance properties
     content = await file.read()
     assert isinstance(file.filename, str)
     
     # Get and return deployment data
     service = FormDeploymentService(get_llm_client())
-    return service.attempt_deploy(filename=file.filename, file_bytes=content)
+    return service.attempt_deploy(filename=file.filename, file_bytes=content, refresh_token=refresh_token)
+
 
 @router.get("/retrieve", response_model=FormDeploymentRetrieveResponse)
-async def retrieve_form(formId: str):
+async def retrieve_form(formId: str, request: Request):
+    # Get refresh token
+    refresh_token = request.cookies.get("refresh_token")
+    if not refresh_token:
+        return FormDeploymentRetrieveResponse(
+            formId=formId,
+            status="error",
+            feedback='Please press "Login to Google Forms".'
+        )
+
     # Get and return retrieval data
     service = FormDeploymentService(get_llm_client())
-    return service.attempt_retrieve(formId=formId)
+    return service.attempt_retrieve(formId=formId, refresh_token=refresh_token)

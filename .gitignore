@@ -241,4 +241,4 @@ frontend/sensitive/
 # Logs
 *.log.DS_Store
 *.log
-commit
+commit.md
