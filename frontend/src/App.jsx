@@ -98,7 +98,7 @@ export default function App() {
           <div className="brand">
             <img src={logo} alt="SensibleForms logo" className="logo" />
             <div>
-              <h1 className="brandTitle">SensibleForms</h1>
+              <h1 className="brandTitle">Sensible Forms</h1>
               <p className="brandSub">
                 LLM-powered workflows for survey creation, analysis, and deployment
               </p>
