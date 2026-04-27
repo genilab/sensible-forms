@@ -25,6 +25,7 @@ COOKIE_NAME = "refresh_token"
 COOKIE_SECURE = bool(settings.COOKIE_SECURE)
 COOKIE_MAX_AGE = 30*24*60*60
 COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
+COOKIE_DOMAIN = REDIRECT_URI[8:-14]
 
 
 @router.get("/start")
@@ -56,6 +57,7 @@ def auth_start():
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         path="/",
+        domain=COOKIE_DOMAIN,
         max_age=300,
     )
     return redirect
@@ -93,6 +95,7 @@ def auth_callback(request: Request):
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         path="/",
+        domain=COOKIE_DOMAIN,
         max_age=COOKIE_MAX_AGE,
     )
     return redirect
