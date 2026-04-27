@@ -13,7 +13,8 @@ import { getJson } from "./http.js";
  * @returns {Promise<{isAuth: boolean}>}
  */
 export async function getAuthStatus() {
-    return await getJson("/auth/status");
+    const token = localStorage.getItem("refresh_token");
+    return { isAuth: !!token };
 }
 
 /**
@@ -21,22 +22,14 @@ export async function getAuthStatus() {
  */
 export function handleLogin() {
 	//window.location.href = `${getApiBaseUrl()}/auth/start`;
-    window.open(`${getApiBaseUrl()}/auth/start`, "_blank", "noopener,noreferrer");
+    window.open(`${getApiBaseUrl()}/auth/start`, "_blank");
 }
 
 /**
  * Execute the logout backend function at /auth/logout
  */
-export async function handleLogout() {
-  const res = await fetch(`${getApiBaseUrl()}/auth/logout`, {
-    method: "POST",
-    credentials: "include"
-  });
-  
-  if (!res.ok) {
-    const detail = await res.text();
-    throw new Error(`HTTP ${res.status}: ${detail}`);
-  }
+export function handleLogout() {
+  localStorage.removeItem("refresh_token");
 }
 
 // Track and handle async authorization processes

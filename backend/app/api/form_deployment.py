@@ -24,6 +24,13 @@ from app.infrastructure.llm.factory import get_llm_client
 router = APIRouter(prefix="/form-deployment", tags=["Form Deployment"])
 
 
+def get_refresh_token(request: Request) -> str | None:
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        return None
+    return auth.split(" ", 1)[1]
+
+
 @router.post("/chat", response_model=FormDeploymentResponse)
 @router.post("/", response_model=FormDeploymentResponse, include_in_schema=False)
 def deployment_chat(request: FormDeploymentRequest):
@@ -32,11 +39,10 @@ def deployment_chat(request: FormDeploymentRequest):
 
 
 @router.post("/deploy", response_model=FormDeploymentDeployResponse)
-async def deploy_form(file: UploadFile = File(...), request: Request = None): # pyright: ignore[reportArgumentType]
-    # Get refresh token
+async def deploy_form(file: UploadFile = File(...), request: Request = None):
     refresh_token = None
     if request:
-        refresh_token = request.cookies.get("refresh_token")
+        refresh_token = get_refresh_token(request)
     
     # Read content and assert instance properties
     content = await file.read()
@@ -50,7 +56,7 @@ async def deploy_form(file: UploadFile = File(...), request: Request = None): # 
 @router.get("/retrieve", response_model=FormDeploymentRetrieveResponse)
 async def retrieve_form(formId: str, request: Request):
     # Get refresh token
-    refresh_token = request.cookies.get("refresh_token")
+    refresh_token = get_refresh_token(request)
     if not refresh_token:
         return FormDeploymentRetrieveResponse(
             formId=formId,

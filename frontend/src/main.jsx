@@ -1,7 +1,7 @@
 /**
  * main.jsx
  *
- * Boots the example React app.
+ * Boots the React app.
  */
 
 import React from "react";

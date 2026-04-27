@@ -12,6 +12,16 @@ export default function AuthComplete() {
   const { refresh } = useAuth();
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("refresh_token");
+
+    if (token) {
+      localStorage.setItem("refresh_token", token);
+
+      // Clean the URL so token isn't visible anymore
+      window.history.replaceState({}, document.title, "/");
+    }
+
     void refresh();
 
     const t = setTimeout(() => {
