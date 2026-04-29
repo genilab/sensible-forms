@@ -57,18 +57,10 @@ def test_all_sample_question_files():
 REFRESH_TOKEN = ...
 
 
-def test_authentication():
-    assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
-    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
-    r = client.get("/auth/status", headers=headers)
-    assert r.status_code == 200
-    assert r.json()["isAuth"], r.json()
-
-
 # View at https://docs.google.com/forms/u/0/
 def test_single_deployment():
     assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
-    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
+    headers = {"Authorization": f"Bearer {REFRESH_TOKEN}"}
     file = os.listdir(QUESTION_FILE_DIR)[0]
     f = open(QUESTION_FILE_DIR+file, 'rb')
     files = {"file": (f.name, f, "text/csv")}
@@ -82,7 +74,7 @@ def test_single_deployment():
 @pytest.mark.asyncio
 async def test_all_deployments():
     assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
-    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
+    headers = {"Authorization": f"Bearer {REFRESH_TOKEN}"}
     formId_samples = []
     for file in os.listdir(QUESTION_FILE_DIR):
         f = open(QUESTION_FILE_DIR+file, 'rb')
@@ -106,7 +98,7 @@ async def test_all_deployments():
 
 def test_single_retrieval():
     assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
-    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
+    headers = {"Authorization": f"Bearer {REFRESH_TOKEN}"}
     formId = formId_samples[0]
     r = client.get("/form-deployment/retrieve", params={"formId": formId}, headers=headers)
     assert r.json()["status"] == "success", str(r.json())
@@ -114,7 +106,7 @@ def test_single_retrieval():
 
 def test_all_retrievals():
     assert REFRESH_TOKEN, "Set REFRESH_TOKEN above this test"
-    headers = {"cookie": f"refresh_token={REFRESH_TOKEN}"}
+    headers = {"Authorization": f"Bearer {REFRESH_TOKEN}"}
     for formId in formId_samples:
         r = client.get("/form-deployment/retrieve", params={"formId": formId}, headers=headers)
         assert r.json()["status"] == "success", str(r.json())
