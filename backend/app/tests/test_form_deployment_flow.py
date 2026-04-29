@@ -53,7 +53,7 @@ def test_all_sample_question_files():
 
 # NOTE: The following tests require some setup to begin
 #   1. Visit http://localhost:8000/auth/start in a browser and complete the consent flow
-#   2. After redirect, copy the "refresh_token" value and paste into "REFRESH_TOKEN = ..." below
+#   2. After redirect, copy the "refresh_token" value (from devtools -> local storage) and paste into "REFRESH_TOKEN = ..." below
 REFRESH_TOKEN = ...
 
 

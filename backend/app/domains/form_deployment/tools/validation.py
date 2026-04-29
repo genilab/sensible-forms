@@ -154,7 +154,44 @@ def form_deployment_check_questions_csv_tool(
                     The current invalid 'scale_max' values are: {", ".join(map(str, invalid_values))}
                     """)
 
-            # 10. Check for bool in 'required'
+            # 10. Check if non-int/float in scale_min/max_label
+            # For scale_min_label
+            if not numeric_scale_min.empty and invalid_scale_min_rows.empty:
+                # Create a boolean mask for rows where numeric_scale_min is not NaN
+                mask_notna_numeric_scale_min = numeric_scale_min.notna()
+                # Create a boolean series for rows where scale_min_label is an int or float, ensuring to handle NaN values gracefully
+                is_numeric_min_label_type = df['scale_min_label'].apply(lambda x: isinstance(x, (int, float)) if pd.notna(x) else False)
+                # Combine these two masks to get the final set of invalid rows, aligned with df
+                invalid_range_min_labels_mask = mask_notna_numeric_scale_min & is_numeric_min_label_type
+                if invalid_range_min_labels_mask.any():
+                    invalid_rows_idx = df[invalid_range_min_labels_mask].index.tolist()
+                    invalid_values = df.loc[invalid_rows_idx, 'scale_min_label'].tolist()
+                    errors.append(f"""
+                    Invalid values in detected in 'scale_min_label'.
+                    Valid scale_min_label must be a string (not a number) when 'scale_min' is present.
+                    The current invalid rows are: {', '.join(map(str, invalid_rows_idx))}
+                    The current invalid 'scale_min_label' values are: {', '.join(map(str, invalid_values))}
+                    """)
+
+            # For scale_max_label
+            if not numeric_scale_max.empty and invalid_scale_max_rows.empty:
+                # Create a boolean mask for rows where numeric_scale_max is not NaN
+                mask_notna_numeric_scale_max = numeric_scale_max.notna()
+                # Create a boolean series for rows where scale_min_label is an int or float, ensuring to handle NaN values gracefully
+                is_numeric_max_label_type = df['scale_max_label'].apply(lambda x: isinstance(x, (int, float)) if pd.notna(x) else False)
+                # Combine these two masks to get the final set of invalid rows, aligned with df
+                invalid_range_max_labels_mask = mask_notna_numeric_scale_max & is_numeric_max_label_type
+                if invalid_range_max_labels_mask.any():
+                    invalid_rows_idx = df[invalid_range_max_labels_mask].index.tolist()
+                    invalid_values = df.loc[invalid_rows_idx, 'scale_max_label'].tolist()
+                    errors.append(f"""
+                    Invalid values in detected in 'scale_max_label'.
+                    Valid scale_max_label must be a string (not a number) when 'scale_max' is present.
+                    The current invalid rows are: {', '.join(map(str, invalid_rows_idx))}
+                    The current invalid 'scale_max_label' values are: {', '.join(map(str, invalid_values))}
+                    """)
+
+            # 11. Check for bool in 'required'
             valid_required_values = ['true', 'false', '1', '0', '1.0', '0.0']
             invalid_required_rows = df[df['required'].notna() & ~df['required'].astype(str).str.lower().isin(valid_required_values)]
             if not invalid_required_rows.empty:
