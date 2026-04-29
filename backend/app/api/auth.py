@@ -13,6 +13,7 @@ from google_auth_oauthlib.flow import Flow
 from app.domains.form_deployment.tools import oauth
 from app.infrastructure.config.settings import settings
 import json
+from urllib.parse import urlencode
 
 router = APIRouter(prefix="/auth", tags=["OAuth2"])
 
@@ -25,6 +26,7 @@ COOKIE_NAME = "refresh_token"
 COOKIE_SECURE = bool(settings.COOKIE_SECURE)
 COOKIE_MAX_AGE = 30*24*60*60
 COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
+COOKIE_DOMAIN = REDIRECT_URI[8:-14] if COOKIE_SECURE else "localhost"
 
 
 @router.get("/start")
@@ -56,6 +58,7 @@ def auth_start():
         secure=COOKIE_SECURE,
         samesite=COOKIE_SAMESITE,
         path="/",
+        domain=COOKIE_DOMAIN,
         max_age=300,
     )
     return redirect
@@ -83,20 +86,18 @@ def auth_callback(request: Request):
     if not creds.refresh_token:
         raise HTTPException(400, "Missing refresh token.")
     
-    redirect = RedirectResponse(url=FRONTEND_ROUTE)
+    # Query param "?oauth=complete" enables detecting popup flow completion
+    params = urlencode({
+        "oauth": "complete",
+        "refresh_token": creds.refresh_token,
+    })
+
+    redirect = RedirectResponse(url=f"{FRONTEND_ROUTE}?{params}")
     redirect.delete_cookie("oauth_flow", path="/")
-    redirect.set_cookie(
-        key=COOKIE_NAME,
-        value=creds.refresh_token,
-        httponly=True,
-        secure=COOKIE_SECURE,
-        samesite=COOKIE_SAMESITE,
-        path="/",
-        max_age=COOKIE_MAX_AGE,
-    )
     return redirect
 
 
+# Retained for error checking / maintenance
 @router.post("/logout")
 def logout(response: Response):
     try:
@@ -106,8 +107,10 @@ def logout(response: Response):
         raise HTTPException(400, e)
 
 
+# Retained for error checking / maintenance
 @router.get("/status")
 def status(request: Request):
-    """Returns the current authentication status of the user."""
-    refresh_token = request.cookies.get(COOKIE_NAME)
-    return {"isAuth": bool(refresh_token and refresh_token != "null")}
+    auth = request.headers.get("Authorization")
+    if not auth or not auth.startswith("Bearer "):
+        return None
+    return auth.split(" ", 1)[1]

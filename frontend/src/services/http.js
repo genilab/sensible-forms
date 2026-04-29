@@ -6,13 +6,20 @@
 
 import { getApiBaseUrl } from "./apiBase.js";
 
+function getAuthHeaders() {
+  const token = localStorage.getItem("refresh_token");
+  return token
+    ? { Authorization: `Bearer ${token}` }
+    : {};
+}
+
 export async function postJson(path, body) {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json"
+      "Content-Type": "application/json",
+      ...getAuthHeaders()
     },
-    credentials: "include",
     body: JSON.stringify(body)
   });
 
@@ -27,7 +34,9 @@ export async function postJson(path, body) {
 export async function postMultipart(path, formData) {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "POST",
-    credentials: "include",
+    headers: {
+      ...getAuthHeaders()
+    },
     body: formData
   });
 
@@ -42,8 +51,10 @@ export async function postMultipart(path, formData) {
 export async function getJson(path) {
   const res = await fetch(`${getApiBaseUrl()}${path}`, {
     method: "GET",
-    credentials: "include",
-    headers: { "Accept": "application/json" }
+    headers: {
+      "Accept": "application/json",
+      ...getAuthHeaders()
+    }
   });
 
   if (!res.ok) {
