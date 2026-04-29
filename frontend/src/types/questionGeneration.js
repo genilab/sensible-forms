@@ -7,7 +7,6 @@
  * These definitions ensure frontend-backend contract consistency.
  */
 
-// Example Code:
 
 /** @typedef {{ topic: string, session_id?: string }} QuestionRequest */
 /** @typedef {{ questions: string[], session_id: string }} QuestionResponse */

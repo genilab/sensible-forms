@@ -11,7 +11,6 @@ This layer should only manage I/O concerns.
 Business logic belongs in the domain layer.
 """
 
-# Example Code:
 from fastapi import APIRouter
 from app.domains.question_generation.service import QuestionGenerationService
 from app.domains.question_generation.schemas import (
