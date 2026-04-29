@@ -261,7 +261,7 @@ export default function QuestionGeneration() {
 		</div>
 
 		{error ? (
-			<div className="small" style={{ marginTop: 8 }}>
+			<div className="alert" role="alert">
 				Error: {error}
 			</div>
 		) : null}

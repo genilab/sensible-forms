@@ -13,7 +13,6 @@ After initial integration, this file may be empty or contain only a few shared t
 We can expand upon this file as the system grows and we identify common types that are used across multiple domains.
 """
 
-# Example Code:
 from enum import Enum
 
 

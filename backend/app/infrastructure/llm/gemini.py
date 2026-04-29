@@ -10,7 +10,6 @@ Responsible for:
 Implements the LLM client interface specific to the Gemini provider. This allows the application to interact with Gemini as an LLM provider while adhering to a common interface used across different providers (in client.py).
 """
 
-# Example Code:
 from __future__ import annotations
 
 from typing import Any, Optional

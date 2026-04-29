@@ -10,7 +10,6 @@ Responsible for:
 Applies cross-cutting AI safety policies across the system.
 """
 
-# Example Code:
 from starlette.middleware.base import BaseHTTPMiddleware
 
 

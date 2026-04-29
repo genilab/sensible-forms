@@ -9,6 +9,5 @@ Defines:
 Provides consistent error handling across the system.
 """
 
-# Example Code:
 class AppException(Exception):
     pass

@@ -10,7 +10,6 @@ Responsible for:
 Centralizes logging behavior across the application.
 """
 
-# Example Code:
 import logging
 
 logging.basicConfig(level=logging.INFO)

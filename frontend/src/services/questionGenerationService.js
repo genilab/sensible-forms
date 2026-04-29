@@ -11,7 +11,6 @@
  * Prevents direct HTTP calls inside UI components.
  */
 
-// Example Code:
 import { postJson } from "./http.js";
 
 /**
