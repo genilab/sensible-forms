@@ -16,22 +16,28 @@ Sensible Forms is a generative AI system for academic researchers that streamlin
 
 Sensible Forms uses Google Gemini via OwlChat OpenWebUI (an OpenAI-compatible API) with three customized bots: question generation, form deployment, and analysis assistance. All three bots are delivered through a website and they can be used together or separately. Users deploying their own version of Sensible Forms also have the option to use a Google Gemini API key if desired.
 
+### Generative AI Disclosure
+Generative AI services (such as Copilot, ChatGPT, and Gemini) assisted with the creation and development of the Sensible Forms code. All code was subject to manual review and testing by the team.
+
 ### Backend
 
+<div align="left">
   <img src="https://img.shields.io/badge/Python_3.14-midnightblue?style=for-the-badge&logo=python&logoColor=white" alt="Python 3.14" />
   <img src="https://img.shields.io/badge/FastAPI-midnightblue?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI" />
   <img src="https://img.shields.io/badge/Pydantic-midnightblue?style=for-the-badge&logo=pydantic&logoColor=white" alt="Pydantic" />
   <img src="https://img.shields.io/badge/LangChain-midnightblue?style=for-the-badge&logo=langchain&logoColor=white" alt="LangChain" />
   <img src="https://img.shields.io/badge/pip-midnightblue?style=for-the-badge&logo=pip&logoColor=white" alt="pip" />
-
+</div>
 
 ### Frontend
 
+<div align="left">
   <img src="https://img.shields.io/badge/React-maroon?style=for-the-badge&logo=react&logoColor=white" alt="React" />
   <img src="https://img.shields.io/badge/JavaScript-maroon?style=for-the-badge&logo=javascript&logoColor=white" alt="JavaScript" />
   <img src="https://img.shields.io/badge/HTML-maroon?style=for-the-badge&logo=html&logoColor=white" alt="HTML" />
   <img src="https://img.shields.io/badge/CSS-maroon?style=for-the-badge&logo=css&logoColor=white" alt="CSS" />
   <img src="https://img.shields.io/badge/npm-maroon?style=for-the-badge&logo=npm&logoColor=white" alt="npm" />
+</div>
 
 ## Current Capabilities
 ### Question Generation
